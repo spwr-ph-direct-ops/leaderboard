@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Coordinator Performance Leaderboard — Direct Operations · SunPower</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a1a;background:#f5f5f5;font-size:13px;}
+.page-wrap{max-width:1200px;margin:0 auto;padding:1.5rem 1rem;}
+.sunpower-bar{background:linear-gradient(90deg,#f97316,#1a56a0);height:4px;border-radius:2px;margin-bottom:1.5rem;}
+.page-header{background:#fff;border-radius:10px;border:1px solid #e0e0e0;padding:1.25rem 1.5rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
+.page-title{font-size:18px;font-weight:600;color:#0a1628;}
+.page-subtitle{font-size:12px;color:#666;margin-top:3px;}
+.period-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.period-btn{font-size:12px;padding:5px 14px;border:1px solid #ccc;border-radius:5px;cursor:pointer;background:#fff;color:#555;}
+.day-pill{font-size:10px;padding:3px 7px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff;color:#777;}
+.day-pill.active{background:#1a56a0;color:#fff;border-color:#1a56a0;font-weight:600;}
+.day-pill.today{border-color:#059669;color:#059669;}
+.day-pill.today.active{background:#059669;color:#fff;border-color:#059669;}
+.day-pill.future{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.period-btn.active{background:#1a56a0;color:#fff;border-color:#1a56a0;font-weight:500;}
+
+/* ── WEEK SELECTOR BAR ─────────────────────────────────────────── */
+.week-bar{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:10px 1.5rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.week-nav-btn{width:28px;height:28px;border:1px solid #ccc;border-radius:5px;cursor:pointer;background:#fff;color:#555;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.week-nav-btn:hover{background:#f0f4fa;border-color:#1a56a0;color:#1a56a0;}
+.week-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+.week-selector{font-size:12px;padding:5px 10px;border:1px solid #ccc;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;min-width:200px;}
+.week-selector:focus{outline:none;border-color:#1a56a0;}
+.week-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;background:#f0f4fa;color:#1a56a0;border:1px solid #c7d7f0;white-space:nowrap;}
+.week-badge.current-ww{background:#d1fae5;color:#065f46;border-color:#a7f3d0;}
+.week-chip{font-size:10px;color:#aaa;white-space:nowrap;}
+
+.wd-bar{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:10px 1.5rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.wd-chip{background:#f0f4fa;border:1px solid #d0daea;border-radius:5px;padding:4px 10px;font-size:11px;color:#555;}
+.wd-chip strong{color:#1a1a1a;}
+.data-bar{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:10px 1.5rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.btn-export{padding:6px 14px;background:#059669;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:500;}
+.btn-export:hover{background:#047857;}
+.btn-import{padding:6px 14px;background:#1a56a0;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;}
+.btn-import:hover{background:#134480;}
+.btn-clear{padding:6px 14px;background:#f5f5f5;color:#666;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-size:12px;}
+.btn-clear:hover{background:#fee2e2;color:#991b1b;}
+.import-status{font-size:11px;padding:4px 10px;border-radius:4px;display:none;}
+.import-ok{background:#d1fae5;color:#065f46;}.import-err{background:#fee2e2;color:#991b1b;}
+.card{background:#fff;border-radius:10px;border:1px solid #e0e0e0;padding:1.25rem 1.5rem;margin-bottom:1rem;}
+.tabs{display:flex;gap:2px;border-bottom:2px solid #e8e8e8;margin-bottom:1.25rem;}
+.tab{padding:8px 18px;cursor:pointer;font-size:13px;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;border-radius:4px 4px 0 0;}
+.tab.active{color:#1a56a0;border-bottom:3px solid #1a56a0;font-weight:500;background:#f0f4fa;}
+.tab:hover:not(.active){color:#333;background:#f9f9f9;}
+.fn-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+.e-tab{font-size:12px;padding:5px 13px;border:1px solid #ccc;border-radius:5px;cursor:pointer;background:#fff;color:#555;}
+.e-tab.active{background:#1a56a0;color:#fff;border-color:#1a56a0;}
+.fn-label{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block;white-space:nowrap;}
+.fn-Funding{background:#dbeafe;color:#1e40af;}.fn-Licensing{background:#ede9fe;color:#4c1d95;}
+.fn-Permitting{background:#d1fae5;color:#065f46;}.fn-HOA{background:#fef3c7;color:#78350f;}
+.fn-Utilities{background:#ccfbf1;color:#134e4a;}.fn-Safety{background:#fee2e2;color:#991b1b;}
+.fn-Roofing{background:#fce7f3;color:#831843;}
+.badge{font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid #ddd;background:#f5f5f5;color:#666;white-space:nowrap;}
+.badge-sup{background:#fef3c7;color:#92400e;border-color:#fcd34d;}
+.badge-ncg{background:#dbeafe;color:#1e40af;border-color:#93c5fd;}
+.badge-trainee{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
+.note-box{background:#f0f4fa;border:1px solid #c7d7f0;border-radius:7px;padding:10px 14px;font-size:11px;color:#444;margin-bottom:1rem;line-height:1.7;}
+.toggle-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 14px;background:#f9f9f9;border:1px solid #e8e8e8;border-radius:7px;margin-bottom:1rem;}
+.toggle-item{display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;}
+.toggle-item input{cursor:pointer;width:13px;height:13px;}
+.toggle-item.mon{color:#1a1a1a;font-weight:500;}
+.toggle-item.moff{color:#aaa;}
+.weight-pill{font-size:10px;padding:1px 6px;border-radius:8px;margin-left:2px;font-weight:500;}
+.wp-on{background:#dbeafe;color:#1e40af;}.wp-off{background:#f5f5f5;color:#aaa;}
+.coord-card{border:1px solid #e0e0e0;border-radius:10px;margin-bottom:1rem;overflow:hidden;background:#fff;}
+.coord-card-hdr{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#f9f9f9;flex-wrap:wrap;border-bottom:1px solid #f0f0f0;}
+.coord-card-body{padding:12px 14px;display:grid;gap:12px;}
+.output-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.day-cell{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.day-lbl{font-size:10px;font-weight:600;text-align:center;color:#666;}
+.day-lbl.today{color:#1a56a0;}.day-lbl.past{color:#059669;}.day-lbl.locked{color:#ccc;}
+.day-lbl.future-ww{color:#ccc;}
+.metric-input{width:100%;padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:11px;background:#fff;color:#1a1a1a;text-align:center;}
+.metric-input:focus{outline:none;border-color:#1a56a0;box-shadow:0 0 0 2px rgba(26,86,160,.1);}
+.metric-input.locked{background:#f5f5f5;color:#bbb;cursor:not-allowed;border-style:dashed;pointer-events:none;}
+.metric-input.tfield{background:#f0f6ff;border-color:#93c5fd;color:#555;}
+.metric-input.moff{background:#f9f9f9;color:#bbb;border-style:dashed;opacity:.7;}
+.attend-grid{display:flex;gap:12px;flex-wrap:wrap;}
+.attend-day{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#666;}
+.attend-day input[type=checkbox]{width:14px;height:14px;cursor:pointer;}
+.attend-day input{width:16px;height:16px;cursor:pointer;}
+.attend-day.lkd{opacity:.35;pointer-events:none;}
+.score-badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;}
+.sb-g{background:#d1fae5;color:#065f46;}.sb-b{background:#dbeafe;color:#1e40af;}
+.sb-a{background:#fef3c7;color:#78350f;}.sb-r{background:#fee2e2;color:#991b1b;}
+.over-badge{font-size:9px;background:#ede9fe;color:#4c1d95;padding:1px 4px;border-radius:3px;margin-left:3px;}
+.chip-na{font-size:10px;background:#f5f5f5;color:#aaa;padding:1px 5px;border-radius:3px;border:1px solid #eee;}
+.chip-off{font-size:10px;background:#f5f5f5;color:#aaa;padding:1px 5px;border-radius:3px;border:1px dashed #ccc;}
+.mlabel{font-size:10px;font-weight:600;color:#555;margin-bottom:4px;}
+.mlabel.off{opacity:.4;text-decoration:line-through;}
+.coord-metric-toggles{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:5px 8px;background:#f9f9f9;border:1px solid #eee;border-radius:6px;}
+.coord-metric-toggles-label{font-size:9px;font-weight:600;color:#aaa;margin-right:2px;white-space:nowrap;}
+.metric-pill{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none;white-space:nowrap;}
+.metric-pill.pill-on{background:#dbeafe;color:#1e40af;border-color:#93c5fd;}
+.metric-pill.pill-off{background:#f5f5f5;color:#aaa;border-color:#ddd;text-decoration:line-through;}
+.metric-pill input{display:none;}
+.overall-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid #f0f0f0;background:#fafbff;flex-wrap:wrap;}
+.prior-btn{display:flex;align-items:center;gap:5px;font-size:10px;color:#aaa;cursor:pointer;padding:6px 0 2px;background:none;border:none;width:100%;text-align:left;}
+.prior-btn:hover{color:#666;}
+.prior-arrow{font-size:9px;transition:transform .2s;display:inline-block;}
+.prior-section{display:none;padding:8px 0 4px;}
+.prior-section.open{display:block;}
+.prior-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.prior-field{display:flex;flex-direction:column;gap:3px;}
+.prior-field label{font-size:9px;color:#aaa;font-weight:500;}
+.lb-table{width:100%;border-collapse:collapse;font-size:12px;}
+.lb-table th{font-size:10px;font-weight:600;color:#666;padding:7px 9px;border-bottom:2px solid #e8e8e8;text-align:left;white-space:nowrap;cursor:pointer;background:#fafafa;}
+.lb-table th.ns{cursor:default;}
+.lb-table th:hover:not(.ns){color:#1a56a0;background:#f0f4fa;}
+.lb-table td{padding:7px 9px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.lb-table tr:hover td{background:#fafbff;}
+.lb-table tr.top3 td{background:#f0fdf4;}
+.rank-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.r1{background:#fbbf24;color:#451a03;}.r2{background:#94a3b8;color:#0f172a;}.r3{background:#fb923c;color:#431407;}.rn{background:#f0f0f0;color:#666;}
+.score-bar-wrap{height:6px;background:#e8e8e8;border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.score-bar{height:100%;border-radius:3px;}
+.wt-table{width:100%;border-collapse:collapse;font-size:12px;}
+.wt-table th{font-size:10px;font-weight:600;color:#666;padding:7px 9px;border-bottom:2px solid #e8e8e8;text-align:left;background:#fafafa;}
+.wt-table td{padding:7px 9px;border-bottom:1px solid #f0f0f0;}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center;}
+.filter-btn{font-size:11px;padding:4px 11px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff;color:#555;}
+.filter-btn.active{background:#1a56a0;color:#fff;border-color:#1a56a0;}
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1rem;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#555;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sec-div{font-size:12px;font-weight:600;color:#555;padding:6px 0 5px;border-bottom:1px solid #e8e8e8;margin-bottom:10px;margin-top:6px;}
+.roster-input{width:100%;padding:3px 6px;border:1px solid #e0e0e0;border-radius:4px;font-size:11px;background:#fff;color:#1a1a1a;}
+.roster-input:focus{outline:none;border-color:#1a56a0;}
+.roster-select{width:100%;padding:3px 4px;border:1px solid #e0e0e0;border-radius:4px;font-size:11px;background:#fff;color:#1a1a1a;cursor:pointer;}
+.roster-select:focus{outline:none;border-color:#1a56a0;}
+.roster-remove{font-size:10px;padding:2px 8px;border:1px solid #fca5a5;border-radius:4px;background:#fee2e2;color:#991b1b;cursor:pointer;}
+.roster-remove:hover{background:#fecaca;}
+.roster-hide{font-size:10px;padding:2px 8px;border:1px solid #e0e0e0;border-radius:4px;background:#f5f5f5;color:#666;cursor:pointer;}
+.roster-hide.hidden{background:#fef3c7;color:#92400e;border-color:#fcd34d;}
+.btn-primary{padding:8px 20px;background:#1a56a0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;}
+.btn-primary:hover{background:#134480;}
+.readonly-banner{background:#f0f4fa;border:1px solid #c7d7f0;border-radius:7px;padding:8px 14px;font-size:11px;color:#1e40af;margin-bottom:1rem;display:none;}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:12px;padding:1.5rem;max-width:440px;width:90%;}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:8px;}
+.modal-body{font-size:12px;color:#555;margin-bottom:1.25rem;line-height:1.7;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.btn-mok{padding:7px 18px;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:500;}
+.btn-mcancel{padding:7px 18px;background:#f5f5f5;color:#555;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-size:12px;}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<div class="sunpower-bar"></div>
+
+<!-- View Mode Banner -->
+<div id="view-mode-banner" style="display:none;background:#f0f4fa;border:1px solid #c7d7f0;border-radius:10px;padding:10px 1.5rem;margin-bottom:1rem;align-items:center;gap:10px;flex-wrap:wrap;">
+  <span style="font-size:13px;">👁 <strong>View Mode</strong> — Leaderboard is read-only.</span>
+  <span id="banner-edit-btn" style="margin-left:auto;"><button onclick="setViewMode('edit')" style="font-size:12px;padding:5px 14px;border:1px solid #1a56a0;border-radius:5px;background:#1a56a0;color:#fff;cursor:pointer;font-weight:500;">✏️ Switch to Edit Mode</button></span>
+</div>
+<div class="page-header">
+  <div>
+    <div class="page-title">Project Coordinator Performance Leaderboard</div>
+    <div class="page-subtitle">Direct Operations · SunPower &nbsp;|&nbsp; <span id="last-updated">—</span> &nbsp;<span style="font-size:10px;color:#aaa;">Mountain Time (MT)</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button onclick="setViewMode(viewMode==='edit'?'view':'edit')" id="view-mode-toggle"
+      style="font-size:11px;padding:5px 12px;border:1px solid #ccc;border-radius:5px;cursor:pointer;background:#fff;color:#555;">
+      👁 View Mode
+    </button>
+  </div>
+</div>
+
+<!-- ── WEEK SELECTOR ──────────────────────────────────────────────── -->
+<div class="week-bar">
+  <span style="font-size:11px;color:#666;font-weight:500;">Week:</span>
+  <div id="week-bar-actions" style="display:flex;align-items:center;gap:6px;">
+  <button class="week-nav-btn" id="btn-prev-ww" onclick="navigateWW(-1)" title="Previous week">◀</button>
+  <select class="week-selector" id="ww-selector" onchange="selectWW(parseInt(this.value))"></select>
+  <button class="week-nav-btn" id="btn-next-ww" onclick="navigateWW(1)" title="Next week">▶</button>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+    <span style="font-size:11px;color:#666;">View period:</span>
+    <button class="period-btn active" onclick="setPeriod('daily',this)">Daily</button>
+    <span id="day-pills" style="display:none;gap:3px;align-items:center;">
+      <button class="day-pill" id="dp-0" onclick="selectDayPill(0)">Mon</button>
+      <button class="day-pill" id="dp-1" onclick="selectDayPill(1)">Tue</button>
+      <button class="day-pill" id="dp-2" onclick="selectDayPill(2)">Wed</button>
+      <button class="day-pill" id="dp-3" onclick="selectDayPill(3)">Thu</button>
+      <button class="day-pill" id="dp-4" onclick="selectDayPill(4)">Fri</button>
+    </span>
+    <button class="period-btn" onclick="setPeriod('wtd',this)">WTD</button>
+    <button class="period-btn" onclick="setPeriod('mtd',this)">MTD</button>
+    <button class="period-btn" onclick="setPeriod('qtd',this)">QTD</button>
+  </div>
+</div>
+
+<div class="wd-bar">
+  <span style="font-size:11px;color:#666;font-weight:500;">Working days elapsed (MT):</span>
+  <span class="wd-chip">Week: <strong id="wd-wtd">—</strong></span>
+  <span class="wd-chip">Month: <strong id="wd-mtd">—</strong></span>
+  <span class="wd-chip">Quarter: <strong id="wd-qtd">—</strong></span>
+  <span style="font-size:10px;color:#aaa;" id="fiscal-info"></span>
+</div>
+
+<div class="data-bar" id="data-bar">
+  <span style="font-size:11px;color:#666;font-weight:500;">Data:</span>
+  <button class="btn-export" onclick="exportData()">⬇ Export All Weeks</button>
+  <label class="btn-import" style="cursor:pointer;">⬆ Import
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
+  </label>
+  <button class="btn-clear" onclick="confirmClear()">↺ Reset Week</button>
+  <span id="import-status" class="import-status"></span>
+  <span style="font-size:10px;color:#aaa;">All weeks saved in one JSON file</span>
+  <span style="font-size:10px;color:#059669;margin-left:4px;" id="autosave-indicator"></span>
+  <button onclick="clearAutoSave()" style="font-size:10px;padding:3px 10px;border:1px solid #e0e0e0;border-radius:4px;background:#fff;color:#aaa;cursor:pointer;" title="Clear auto-saved browser data">🗑 Clear auto-save</button>
+</div>
+
+<div id="readonly-banner" class="readonly-banner">
+  🔒 <strong id="readonly-ww-label">—</strong> — Future week. Switch to WW<span id="current-ww-label"></span> or earlier to enter data.
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('entry',this)" id="tab-entry-btn">📋 Data Entry</div>
+    <div class="tab" onclick="switchTab('leaderboard',this)">🏆 Leaderboard</div>
+    <div class="tab" onclick="switchTab('weights',this)">⚙️ Weight Config</div>
+    <div class="tab" onclick="switchTab('roster',this)" id="tab-roster-btn">👥 Roster</div>
+  </div>
+
+  <div id="tab-entry">
+    <div class="note-box">
+      <strong>Output:</strong> Target &amp; Actual per day — past days and today editable, future locked 🔒. <strong>Attendance:</strong> ☑ = present, 🟠 H = holiday (excluded from denominator). <strong>FPY:</strong> Submissions &amp; Rejections per day. Score = (Sub−Rej)÷Sub×100. <strong>Call Answer Rate:</strong> Top=Answered, Bottom=Received per day. Score = Answered÷Received×100. Warning shown if Answered &gt; Received. <strong>Supervisor Tasks:</strong> Assigned &amp; Completed per day. Use <strong>metric pills</strong> to include/exclude individual metrics. <strong>Trainees</strong> default to Attendance + Supervisor Tasks only — enable other metrics via pills when ready.
+    </div>
+    <div class="fn-tabs" id="fn-tabs"></div>
+    <div class="toggle-bar" id="fn-toggles"></div>
+    <div id="entry-form"></div>
+    <div style="margin-top:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="updateLeaderboard()">Update Leaderboard ↗</button>
+      <button onclick="showAddCoordModal()" style="padding:8px 16px;background:#fff;color:#5b21b6;border:1px solid #c4b5fd;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;">+ Add Trainee</button>
+      <span style="font-size:11px;color:#999;">Weights auto-adjust instantly as you toggle</span>
+    </div>
+    <!-- Global hidden coordinators panel — shows all hidden across all functions -->
+    <div id="hidden-panel"></div>
+  </div>
+
+  <div id="tab-leaderboard" style="display:none;">
+    <div class="filter-row">
+      <span style="font-size:11px;color:#666;font-weight:500;">Filter:</span>
+      <button class="filter-btn active" onclick="filterFn('ALL',this)">All</button>
+      <button class="filter-btn" onclick="filterFn('Funding',this)">Funding</button>
+      <button class="filter-btn" onclick="filterFn('Licensing',this)">Licensing</button>
+      <button class="filter-btn" onclick="filterFn('Permitting',this)">Permitting</button>
+      <button class="filter-btn" onclick="filterFn('HOA',this)">HOA</button>
+      <button class="filter-btn" onclick="filterFn('Utilities',this)">Utilities</button>
+      <button class="filter-btn" onclick="filterFn('Safety',this)">Safety</button>
+      <button class="filter-btn" onclick="filterFn('Roofing',this)">Roofing</button>
+    </div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:#059669;"></div>Top Performer (≥90%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1a56a0;"></div>Meeting Target (75–89%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>Needs Improvement (60–74%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div>At Risk (&lt;60%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9ca3af;"></div>Trainee</div>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="lb-table"><thead><tr>
+      <th class="ns" style="width:30px;">#</th>
+      <th onclick="sortBy('name')">Coordinator ⇅</th><th onclick="sortBy('fn')">Function ⇅</th>
+      <th onclick="sortBy('output')">Output ⇅</th><th onclick="sortBy('fpy')">FPY ⇅</th>
+      <th onclick="sortBy('call')">Call Answer Rate ⇅</th><th onclick="sortBy('attendance')">Attend. ⇅</th>
+      <th onclick="sortBy('supervisor')">Supv. ⇅</th><th onclick="sortBy('overall')">Overall ⇅</th>
+      <th class="ns">Bar</th>
+    </tr></thead><tbody id="lb-body"></tbody></table>
+    </div>
+  </div>
+
+  <div id="tab-weights" style="display:none;">
+    <div class="note-box">Live effective weights based on current toggle states. Always totals <strong>100%</strong>.</div>
+    <table class="wt-table"><thead><tr>
+      <th>Function</th><th>Output</th><th>FPY</th><th>Call Answer Rate</th><th>Attendance</th><th>Supervisor</th><th>Total</th>
+    </tr></thead><tbody id="wt-body"></tbody></table>
+  </div>
+</div>
+
+  <div id="tab-roster" style="display:none;">
+    <div class="note-box">
+      Manage all coordinators here. Changes to name, function, role, target, and start date reflect immediately in Data Entry and Leaderboard.
+      <strong>Role:</strong> Regular = full metrics · Trainee = Attendance + Supervisor default · Supervisor = SUP badge.
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="lb-table" id="roster-table">
+      <thead><tr>
+        <th class="ns">Code</th>
+        <th class="ns">Full Name</th>
+        <th class="ns">Function</th>
+        <th class="ns">Role</th>
+        <th class="ns">NCG</th>
+        <th class="ns">Daily Target</th>
+        <th class="ns">Start WW</th>
+        <th class="ns">Start Day</th>
+        <th class="ns">Status</th>
+        <th class="ns">Remove</th>
+      </tr></thead>
+      <tbody id="roster-body"></tbody>
+    </table>
+    </div>
+    <div style="margin-top:1rem;display:flex;align-items:center;gap:10px;" id="roster-add-btn-row">
+      <button onclick="showAddCoordModal()" style="padding:8px 18px;background:#1a56a0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;">+ Add Coordinator</button>
+      <span style="font-size:11px;color:#999;">Changes auto-save with your next export</span>
+    </div>
+  </div>
+
+<div style="text-align:center;font-size:11px;color:#bbb;margin-top:1rem;">
+  Direct Operations · SunPower &nbsp;|&nbsp; Project Coordinator Performance Leaderboard v2.6 · Phase 1 &nbsp;|&nbsp; Timezone: Mountain Time (MT)
+</div>
+
+<div class="modal-overlay" id="clear-modal">
+  <div class="modal-box">
+    <div class="modal-title">Reset current week data?</div>
+    <div class="modal-body">This clears all data for <strong id="clear-ww-label">—</strong>. Export first if you want to keep it.</div>
+    <div class="modal-actions">
+      <button class="btn-mcancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-mok" style="background:#dc2626;" onclick="clearWeekData()">Reset</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Add Trainee Modal -->
+<div class="modal-overlay" id="add-trainee-modal">
+  <div class="modal-box">
+    <div class="modal-title">+ Add New Trainee</div>
+    <div class="modal-body">
+      <div style="display:grid;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Code (e.g. ABC)</label>
+            <input id="new-trainee-code" type="text" maxlength="4" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;" placeholder="3-4 letters">
+          </div>
+          <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Function</label>
+            <select id="new-trainee-fn" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+              <option>Funding</option><option>Licensing</option><option>Permitting</option>
+              <option>HOA</option><option>Utilities</option><option>Safety</option><option>Roofing</option>
+            </select>
+          </div>
+        </div>
+        <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Full Name</label>
+          <input id="new-trainee-name" type="text" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;" placeholder="First Last">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Start Week</label>
+            <select id="new-trainee-ww" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+              ${Array.from({length:52},(_,i)=>'<option value="'+(i+1)+'"'+(i+1===CURRENT_WW?' selected':'')+'>WW'+(i+1)+'</option>').join('')}
+            </select>
+          </div>
+          <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">Start Day</label>
+            <select id="new-trainee-day" style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
+              <option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
+              <option value="3">Thursday</option><option value="4">Friday</option>
+            </select>
+          </div>
+        </div>
+        <div id="add-trainee-error" style="font-size:11px;color:#dc2626;display:none;"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-mcancel" onclick="document.getElementById('add-trainee-modal').classList.remove('show')">Cancel</button>
+      <button class="btn-mok" style="background:#5b21b6;" onclick="addTrainee()">Add Trainee</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOUNTAIN TIME ─────────────────────────────────────────────────────
+const TZ='America/Denver';
+function getMTC(){
+  const p=new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'numeric',day:'numeric',weekday:'short'}).formatToParts(new Date());
+  const g=t=>p.find(x=>x.type===t)?.value;
+  const dm={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  return{year:parseInt(g('year')),month:parseInt(g('month'))-1,day:parseInt(g('day')),dow:dm[g('weekday')]??1};
+}
+function getMTDate(){const{year,month,day}=getMTC();return new Date(year,month,day);}
+function fmtMT(){return new Date().toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});}
+
+// ── FISCAL / WW CALENDAR ──────────────────────────────────────────────
+// WW1 starts Dec 29, 2025 (fiscal Q1 start)
+const WW1_START = new Date(2025,11,29); // Dec 29 2025
+
+function getWWStartDate(ww){
+  const d=new Date(WW1_START);
+  d.setDate(d.getDate()+(ww-1)*7);
+  return d;
+}
+function getWWEndDate(ww){
+  const d=getWWStartDate(ww);
+  d.setDate(d.getDate()+4); // Friday
+  return d;
+}
+function getWWFromDate(date){
+  const ms=date.getTime()-WW1_START.getTime();
+  return Math.max(1,Math.min(52,Math.floor(ms/(7*24*3600*1000))+1));
+}
+function getWWLabel(ww){
+  return `WW${ww}`;
+}
+function getWWDateRange(ww){
+  const mon=getWWStartDate(ww);
+  const fri=getWWEndDate(ww);
+  const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return `${fmt(mon)} – ${fmt(fri)}`;
+}
+function getQuarterFromWW(ww){
+  // Q1: WW1-WW13, Q2: WW14-WW26, Q3: WW27-WW39, Q4: WW40-WW52
+  if(ww<=13) return 1;
+  if(ww<=26) return 2;
+  if(ww<=39) return 3;
+  return 4;
+}
+function getWWWithinQuarter(ww){
+  return ((ww-1)%13)+1;
+}
+
+// ── DATE HELPERS FOR SELECTED WEEK ───────────────────────────────────
+const TODAY=getMTDate();
+const DOW_TODAY=getMTC().dow;
+const CURRENT_WW=getWWFromDate(TODAY);
+
+function getDayIdxForSelectedWW(ww){
+  // Returns 0-4 for Mon-Fri representing "today" relative to selected week
+  // If ww is current week: returns actual MT day index
+  // If ww is past: returns 4 (Friday = all days elapsed)
+  // If ww is future: returns -1 (no days elapsed)
+  if(ww<CURRENT_WW) return 4;
+  if(ww>CURRENT_WW) return -1;
+  if(DOW_TODAY===0||DOW_TODAY===6) return 4;
+  return DOW_TODAY-1;
+}
+function isLockedForWW(dayIdx,ww){
+  const todayIdx=getDayIdxForSelectedWW(ww);
+  return dayIdx>todayIdx;
+}
+function isReadonlyWW(ww){ return false; } // All past and current weeks are editable
+function isFutureWW(ww){ return ww>CURRENT_WW; }
+
+function workingDaysBetween(s,e){
+  let c=0,d=new Date(s);d.setHours(0,0,0,0);
+  const en=new Date(e);en.setHours(0,0,0,0);
+  while(d<=en){if(d.getDay()!==0&&d.getDay()!==6)c++;d.setDate(d.getDate()+1);}
+  return c;
+}
+
+// ── ROSTER ────────────────────────────────────────────────────────────
+const COORDS=[
+  {code:'LTD',name:'Leo Miguel De Perio',fn:'Funding',ncg:true,isSup:false,isTrainee:false,dailyTarget:36,active:true,startWW:1,startDay:0},
+  {code:'MLA',name:'Mark Zeus Arevalo',fn:'Funding',ncg:true,isSup:false,isTrainee:true,dailyTarget:36,active:true,startWW:13,startDay:2},
+  {code:'NAM',name:'Nicole Malabanan',fn:'Funding',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:17,startDay:2},
+  {code:'BRP',name:'Bernadel Roxas',fn:'Funding',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:17,startDay:2},
+  {code:'SZC',name:'Shiela Cruzada',fn:'Licensing',ncg:false,isSup:false,isTrainee:false,dailyTarget:8,active:true,startWW:1,startDay:0},
+  {code:'RZG',name:'Rica Joy Gimpes',fn:'Permitting',ncg:false,isSup:false,isTrainee:false,dailyTarget:5.2,active:true,startWW:1,startDay:0},
+  {code:'SRC',name:'Sheryl Canlas',fn:'Permitting',ncg:false,isSup:false,isTrainee:false,dailyTarget:5.2,active:true,startWW:1,startDay:0},
+  {code:'KLS',name:'Kyla Sese',fn:'Permitting',ncg:true,isSup:false,isTrainee:false,dailyTarget:5.2,active:true,startWW:1,startDay:0},
+  {code:'RSG',name:'Romer Gerodias',fn:'Permitting',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:17,startDay:2},
+  {code:'DVB',name:'Denmark Borce',fn:'Permitting',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:17,startDay:2},
+  {code:'LRS',name:'Lean Patrick Susano',fn:'Funding',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:19,startDay:2},
+  {code:'JVM',name:'Jeremy Fridae Lee Macaranas',fn:'HOA',ncg:true,isSup:false,isTrainee:false,dailyTarget:2.5,active:true,startWW:1,startDay:0},
+  {code:'AQM',name:'Allaine Jemina Magpantay',fn:'Utilities',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:19,startDay:2},
+  {code:'ENB',name:'Elijah May Balahadia',fn:'Utilities',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:19,startDay:2},
+  {code:'DHF',name:'Danika Ysabel Fortuna',fn:'Utilities',ncg:true,isSup:false,isTrainee:true,dailyTarget:null,active:true,startWW:19,startDay:2},
+  {code:'VPR',name:'Viana Ramos',fn:'Utilities',ncg:true,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'GPG',name:'Andrey Gucila',fn:'Utilities',ncg:true,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'WZI',name:'Wilmer Ilagan',fn:'Utilities',ncg:true,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'KLA',name:'Kayecell Aclan',fn:'Utilities',ncg:false,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'AAB',name:'Alvin Buhay',fn:'Utilities',ncg:false,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'MMR',name:'Rochelle Reynante',fn:'Utilities',ncg:false,isSup:false,isTrainee:false,dailyTarget:15,active:true,startWW:1,startDay:0},
+  {code:'RCL',name:'Rico Lacadman',fn:'Safety',ncg:false,isSup:false,isTrainee:false,dailyTarget:8,active:true,startWW:1,startDay:0},
+  {code:'RSC',name:'Rona Carpena',fn:'Roofing',ncg:false,isSup:false,isTrainee:false,dailyTarget:3.2,active:true,startWW:1,startDay:0},
+];
+
+const FND={
+  Funding:{output:true,fpy:false,call:true,attendance:true,supervisor:true},
+  Licensing:{output:true,fpy:false,call:false,attendance:true,supervisor:true},
+  Permitting:{output:true,fpy:true,call:true,attendance:true,supervisor:true},
+  HOA:{output:true,fpy:false,call:true,attendance:true,supervisor:true},
+  Utilities:{output:true,fpy:false,call:true,attendance:true,supervisor:true},
+  Safety:{output:true,fpy:false,call:false,attendance:true,supervisor:true},
+  Roofing:{output:true,fpy:false,call:false,attendance:true,supervisor:true},
+};
+const BASE={output:30,fpy:30,call:20,attendance:10,supervisor:10};
+const METRICS=['output','fpy','call','attendance','supervisor'];
+const ML={output:'Output',fpy:'FPY',call:'Call Answer Rate',attendance:'Attendance',supervisor:'Supv. Tasks'};
+const FNS=[...new Set(COORDS.map(c=>c.fn))];
+const DAYS=['Mon','Tue','Wed','Thu','Fri'];
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let cp='daily',cft='Funding',cf='ALL',cs='overall',csd=1;
+let selectedDayIdx=-1; // -1=today (default), 0-4=specific day Mon-Fri
+let selectedWW=CURRENT_WW;
+// View mode: 'edit' (default) or 'view' (read-only, hides data entry tab)
+const urlParams=new URLSearchParams(window.location.search);
+let viewMode=urlParams.get('mode')==='view'?'view':'edit';
+// urlViewMode = true means opened via ?mode=view — lock to view only, no toggle
+const urlViewMode = urlParams.get('mode')==='view';
+
+function setViewMode(mode){
+  // If opened via URL ?mode=view, always force view mode — no switching allowed
+  if(urlViewMode) mode='view';
+  viewMode=mode;
+  const banner=document.getElementById('view-mode-banner');
+  const tabEntry=document.getElementById('tab-entry-btn');
+  const dataBar=document.getElementById('data-bar');
+  const weekActions=document.getElementById('week-bar-actions');
+  const vmBtn=document.getElementById('view-mode-toggle');
+  if(banner) banner.style.display=mode==='view'?'flex':'none';
+  if(tabEntry) tabEntry.style.display=mode==='view'?'none':'inline-block';
+  if(dataBar) dataBar.style.display=mode==='view'?'none':'flex';
+  if(weekActions) weekActions.style.display='flex'; // always show week nav
+  // Hide toggle button entirely if locked via URL — viewers can't switch to edit
+  if(vmBtn){
+    if(urlViewMode){
+      vmBtn.style.display='none'; // completely hidden for URL-based view mode
+    } else {
+      vmBtn.style.display='inline-block';
+      vmBtn.textContent=mode==='view'?'✏️ Edit Mode':'👁 View Mode';
+    }
+  }
+  // Hide roster tab entirely in view mode
+  const rosterTabBtn=document.getElementById('tab-roster-btn');
+  if(rosterTabBtn) rosterTabBtn.style.display=mode==='view'?'none':'inline-block';
+  // If in view mode and roster tab is currently shown, switch to leaderboard
+  if(mode==='view'&&document.getElementById('tab-roster')&&
+     document.getElementById('tab-roster').style.display!=='none'){
+    switchTab('leaderboard',document.querySelectorAll('.tab')[1]);
+  }
+  // Hide roster add/edit controls in view mode
+  const rosterAddRow=document.getElementById('roster-add-btn-row');
+  if(rosterAddRow) rosterAddRow.style.display=mode==='view'?'none':'flex';
+  // Re-render roster if visible to apply view mode changes
+  if(mode!=='view'&&document.getElementById('tab-roster')&&
+     document.getElementById('tab-roster').style.display!=='none') renderRoster();
+  if(mode==='view'){
+    switchTab('leaderboard',document.querySelectorAll('.tab')[1]);
+  } else {
+    // Make sure entry tab is visible in edit mode
+    switchTab('entry',document.querySelectorAll('.tab')[0]);
+  }
+}
+// Global active status — persists across weeks; false = hidden but data preserved
+const coordActive={};
+COORDS.forEach(c=>{coordActive[c.code]=true;});
+// Team reassignment: coordFn[code] overrides c.fn when set
+const coordFn={};
+// Roster mutations: tracks changes to built-in coord fields (name, target, ncg, role)
+const rosterMutations={};
+function applyRosterMutations(){
+  // Apply saved mutations to COORDS on load
+  Object.keys(rosterMutations).forEach(code=>{
+    const c=COORDS.find(x=>x.code===code);
+    if(!c) return;
+    const m=rosterMutations[code];
+    if(m.name!==undefined) c.name=m.name;
+    if(m.dailyTarget!==undefined) c.dailyTarget=m.dailyTarget;
+    if(m.ncg!==undefined) c.ncg=m.ncg;
+    if(m.isTrainee!==undefined) c.isTrainee=m.isTrainee;
+    if(m.isSup!==undefined) c.isSup=m.isSup;
+  });
+}
+// Trainee start dates: {code: {ww, day}} — day is 0=Mon..4=Fri
+// Default: {ww:1, day:0} = start of Q1 WW1 Monday
+const traineeStart={};
+// traineeStart initialized from COORDS.startWW/startDay — permanent source of truth
+// Only set _explicit=true when changed via Roster UI
+COORDS.forEach(c=>{
+  if(!c.isTrainee) return;
+  traineeStart[c.code]={ww:c.startWW||1,day:c.startDay||0};
+});
+// Dynamic trainees added at runtime
+const dynamicCoords=[];
+
+function getTraineeStartWW(code){
+  // traineeStart (from Roster UI) takes priority if explicitly set
+  // Otherwise fall back to COORDS.startWW (permanent source of truth)
+  if(traineeStart[code]&&traineeStart[code]._explicit) return traineeStart[code].ww;
+  const c=COORDS.find(x=>x.code===code);
+  if(c&&c.startWW!==undefined) return c.startWW;
+  return (traineeStart[code]||{ww:1}).ww;
+}
+function getTraineeStartDay(code){
+  if(traineeStart[code]&&traineeStart[code]._explicit) return traineeStart[code].day;
+  const c=COORDS.find(x=>x.code===code);
+  if(c&&c.startDay!==undefined) return c.startDay;
+  return (traineeStart[code]||{day:0}).day;
+}
+
+// Is a specific day (ww, dayIdx) active for this coordinator?
+function isDayActive(code, ww, dayIdx){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c||!c.isTrainee) return true; // non-trainees always active
+  const sw=getTraineeStartWW(code), sd=getTraineeStartDay(code);
+  if(ww>sw) return true;
+  if(ww<sw) return false;
+  return dayIdx>=sd;
+}
+
+// Should a trainee appear for the given period and selected WW?
+// daily/wtd: only if selectedWW >= startWW
+// mtd: only if startWW is within the same month as selectedWW
+// qtd: only if startWW is within the same quarter as selectedWW
+function isTraineeVisibleForPeriod(code, period, ww){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c||!c.isTrainee) return true; // non-trainees always visible
+  const sw=getTraineeStartWW(code);
+
+  // Rule 1 (all periods): trainee must have started by selectedWW
+  // A trainee can NEVER appear in a week before their start week
+  if(ww<sw) return false;
+
+  if(period==='daily'||period==='wtd'){
+    return true; // ww>=sw already guaranteed above
+  }
+  if(period==='mtd'){
+    // Visible if startWW falls within the same month as selectedWW
+    // AND trainee has already started (ww>=sw, guaranteed above)
+    const startDate=getWWStartDate(sw);
+    const refDate=getWWStartDate(ww);
+    return startDate.getFullYear()===refDate.getFullYear()&&
+           startDate.getMonth()<=refDate.getMonth();
+  }
+  if(period==='qtd'){
+    // Visible if startWW falls within the same quarter as selectedWW
+    // AND trainee has already started (ww>=sw, guaranteed above)
+    const startQ=getQuarterFromWW(sw);
+    const selQ=getQuarterFromWW(ww);
+    return startQ<=selQ;
+  }
+  return true;
+}
+
+function getAllCoords(){
+  return [...COORDS,...dynamicCoords];
+}
+function getCoordFn(code){
+  return coordFn[code]||COORDS.find(x=>x.code===code)?.fn||'';
+}
+function reassignCoord(code,newFn){
+  if(!newFn||newFn===COORDS.find(x=>x.code===code)?.fn){
+    delete coordFn[code]; // back to original
+  } else {
+    coordFn[code]=newFn;
+  }
+  buildFnTabs();buildToggles();buildForm();
+  if(document.getElementById('tab-leaderboard').style.display!=='none')renderLB();
+}
+function toggleCoordActive(code){
+  coordActive[code]=!coordActive[code];
+  buildForm();
+  buildHiddenPanel();
+  if(document.getElementById('tab-leaderboard').style.display!=='none')renderLB();
+}
+
+// Per-week data store: weekStore[ww] = {coordData, fnToggles}
+const weekStore={};
+
+// RSC ramp-up schedule: WW -> daily target
+const RSC_TARGETS={14:15,15:19,16:19,17:26,18:26,19:32,20:39,21:39,22:45,23:45,24:45,25:52,26:52};
+function getDailyTarget(code,ww){
+  const c=getAllCoords().find(x=>x.code===code);
+  return c?.dailyTarget||0;
+}
+function emptyCoordData(ww){
+  const w=ww||selectedWW||1;
+  const d={};
+  COORDS.forEach(c=>{
+    const dt=getDailyTarget(c.code,w);
+    const defaultOn=c.isTrainee
+      ?{output:false,fpy:false,call:false,attendance:true,supervisor:true}
+      :{output:true,fpy:true,call:true,attendance:true,supervisor:true};
+    d[c.code]={
+      targets:[dt,dt,dt,dt,dt],actuals:[0,0,0,0,0],
+      attendance:[false,false,false,false,false],
+      holiday:[false,false,false,false,false],
+      // Call Answer Rate: per-day received/answered
+      call_received:[0,0,0,0,0],call_answered:[0,0,0,0,0],
+      // FPY: per-day submissions/rejections
+      fpy_sub:[0,0,0,0,0],fpy_rej:[0,0,0,0,0],
+      // Supervisor Tasks: per-day assigned/completed
+      sup_assigned:[0,0,0,0,0],sup_completed:[0,0,0,0,0],
+      mtd_target_override:null,mtd_actual_override:null,
+      qtd_target_override:null,qtd_actual_override:null,
+      on:{...defaultOn},
+    };
+  });
+  return d;
+}
+function emptyFnToggles(){
+  const t={};FNS.forEach(fn=>{t[fn]={...FND[fn]};});return t;
+}
+function getWeekStore(ww){
+  if(!weekStore[ww]){
+    const data=emptyCoordData(ww);
+    // For future weeks: zero out all targets and actuals — no data yet
+    if(ww>CURRENT_WW){
+      Object.keys(data).forEach(code=>{
+        data[code].targets=[0,0,0,0,0];
+        data[code].actuals=[0,0,0,0,0];
+        data[code].attendance=[false,false,false,false,false];
+        data[code].holiday=[false,false,false,false,false];
+        data[code].fpy_submitted=0;data[code].fpy_rejected=0;
+        data[code].call=0;data[code].supervisor=0;
+      });
+    }
+    weekStore[ww]={coordData:data,fnToggles:emptyFnToggles()};
+  }
+  return weekStore[ww];
+}
+
+// Active references (point to current selected week's store)
+function activeData(){ return getWeekStore(selectedWW).coordData; }
+function activeFnt(){ return getWeekStore(selectedWW).fnToggles; }
+
+// ── WW SELECTOR UI ────────────────────────────────────────────────────
+function buildWWSelector(){
+  const sel=document.getElementById('ww-selector');
+  sel.innerHTML='';
+  for(let ww=1;ww<=52;ww++){
+    const opt=document.createElement('option');
+    opt.value=ww;
+    const q=getQuarterFromWW(ww);
+    const qww=getWWWithinQuarter(ww);
+    opt.textContent=`WW${ww} — Q${q} · ${getWWDateRange(ww)}`;
+    if(ww===CURRENT_WW) opt.textContent+=' ← current';
+    sel.appendChild(opt);
+  }
+  sel.value=selectedWW;
+}
+
+function updateWWUI(){
+  const sel=document.getElementById('ww-selector');
+  sel.value=selectedWW;
+  const isCurrent=selectedWW===CURRENT_WW;
+  const isPast=isReadonlyWW(selectedWW);
+  const isFuture=isFutureWW(selectedWW);
+  const badge=document.getElementById('ww-badge'); // may be null if removed
+  const q=getQuarterFromWW(selectedWW);
+  const qww=getWWWithinQuarter(selectedWW);
+  if(badge) badge.textContent='';  // badge removed - info shown in dropdown
+  document.getElementById('btn-prev-ww').disabled=selectedWW<=1;
+  document.getElementById('btn-next-ww').disabled=selectedWW>=52;
+
+  // Show info banner only for future weeks
+  const banner=document.getElementById('readonly-banner');
+  if(isFuture){
+    banner.style.display='block';
+    document.getElementById('readonly-ww-label').textContent=`WW${selectedWW} (${getWWDateRange(selectedWW)}) — future week`;
+  } else {
+    banner.style.display='none';
+  }
+
+  // Update working days for selected week
+  updateWDBar();
+}
+
+function navigateWW(delta){
+  const newWW=Math.max(1,Math.min(52,selectedWW+delta));
+  selectWW(newWW);
+}
+
+function selectWW(ww){
+  // Save current DOM state before switching
+  collectDOM();
+  selectedWW=ww;
+  selectedDayIdx=-1; // reset to today/last-day when changing week
+  updateWWUI();
+  buildToggles();
+  buildForm();
+  if(document.getElementById('tab-leaderboard').style.display!=='none') renderLB();
+  // Refresh day pills if Daily period active
+  if(cp==='daily'){
+    const pillsRow=document.getElementById('day-pills');
+    if(pillsRow&&pillsRow.style.display!=='none') updateDayPills();
+  }
+}
+
+// ── WORKING DAYS BAR ──────────────────────────────────────────────────
+function updateWDBar(){
+  const wwMon=getWWStartDate(selectedWW);
+  const wwFri=getWWEndDate(selectedWW);
+  const todayIdx=getDayIdxForSelectedWW(selectedWW);
+
+  // WTD: days elapsed within this week
+  let wtd=0;
+  if(todayIdx>=0){
+    // Count Mon through today (or Fri for past weeks)
+    const endDay=new Date(wwMon);
+    endDay.setDate(wwMon.getDate()+Math.min(todayIdx,4));
+    wtd=workingDaysBetween(wwMon,endDay);
+  }
+
+  // MTD: working days from 1st of month containing Mon of this week, to last elapsed day
+  const refDate=todayIdx<0?new Date(wwMon):new Date(wwMon);
+  refDate.setDate(wwMon.getDate()+Math.min(Math.max(todayIdx,0),4));
+  const m1=new Date(refDate.getFullYear(),refDate.getMonth(),1);
+  const mtd=todayIdx<0?0:workingDaysBetween(m1,refDate);
+
+  // QTD: working days from Q start to last elapsed day
+  const q=getQuarterFromWW(selectedWW);
+  const qStartWW=(q-1)*13+1;
+  const qStart=getWWStartDate(qStartWW);
+  const qtd=todayIdx<0?0:workingDaysBetween(qStart,refDate);
+
+  document.getElementById('wd-wtd').textContent=wtd;
+  document.getElementById('wd-mtd').textContent=mtd;
+  document.getElementById('wd-qtd').textContent=qtd;
+  document.getElementById('fiscal-info').textContent=`Q${q} · WW${selectedWW} of WW52`;
+  document.getElementById('last-updated').textContent=fmtMT();
+}
+
+// ── WEIGHTS ───────────────────────────────────────────────────────────
+function getW(fn,isTrainee,code){
+  // All coordinators including trainees use the same weight engine
+  // Trainees just have output/fpy/call OFF by default in their per-coord 'on' store
+  const ft=activeFnt()[fn];
+  const ct=code?activeData()[code].on:{output:true,fpy:true,call:true,attendance:true,supervisor:true};
+  const act=METRICS.filter(m=>ft[m]&&ct[m]);
+  if(!act.length)return{output:null,fpy:null,call:null,attendance:null,supervisor:null};
+  const s=act.reduce((a,m)=>a+BASE[m],0),r={};
+  METRICS.forEach(m=>{r[m]=act.includes(m)?parseFloat(((BASE[m]/s)*100).toFixed(4)):null;});
+  return r;
+}
+
+// ── SCORES ────────────────────────────────────────────────────────────
+function getOSForWW(code, ww){
+  // Returns {target, actual} for a single week
+  // Uses all 5 days for past weeks, elapsed days for current week
+  const ws=weekStore[ww];
+  if(!ws||!ws.coordData||!ws.coordData[code]) return {target:0,actual:0};
+  const d=ws.coordData[code];
+  const todayIdx=getDayIdxForSelectedWW(ww);
+  const elapsed=ww<CURRENT_WW?5:Math.max(0,todayIdx)+1;
+  let wT=0,wA=0;
+  for(let i=0;i<elapsed;i++){
+    wT+=parseFloat(d.targets[i])||0;
+    wA+=parseFloat(d.actuals[i])||0;
+  }
+  return {target:wT,actual:wA};
+}
+
+function getOS(code,period){
+  // Future weeks have no data yet — return null
+  if(isFutureWW(selectedWW)) return null;
+  const d=activeData()[code];
+  if(!d) return null;
+  const todayIdx=getDayIdxForSelectedWW(selectedWW);
+  const elapsed=Math.max(0,todayIdx)+1;
+
+  // Daily
+  if(period==='daily'){
+    const i=getActiveDayIdx();
+    const t=parseFloat(d.targets[i])||0,a=parseFloat(d.actuals[i])||0;
+    return t>0?parseFloat(Math.min((a/t)*100,100).toFixed(1)):null;
+  }
+
+  // WTD — current week only
+  let wT=0,wA=0;
+  for(let i=0;i<elapsed;i++){wT+=parseFloat(d.targets[i])||0;wA+=parseFloat(d.actuals[i])||0;}
+  if(period==='wtd') return wT>0?parseFloat(Math.min((wA/wT)*100,100).toFixed(1)):null;
+
+  // MTD — sum all weeks in the same month as selectedWW
+  if(period==='mtd'){
+    const wwStart=getWWStartDate(selectedWW);
+    const month=wwStart.getMonth(), year=wwStart.getFullYear();
+    let mtdT=0,mtdA=0;
+    for(let ww=1;ww<=selectedWW;ww++){
+      const wStart=getWWStartDate(ww);
+      if(wStart.getFullYear()!==year||wStart.getMonth()!==month) continue;
+      const {target,actual}=getOSForWW(code,ww);
+      mtdT+=target; mtdA+=actual;
+    }
+    return mtdT>0?parseFloat(Math.min((mtdA/mtdT)*100,100).toFixed(1)):null;
+  }
+
+  // QTD — actuals sum WW(qStart)..selectedWW
+  //        targets sum FULL QUARTER WW(qStart)..WW(qEnd) — shows pace toward Q goal
+  if(period==='qtd'){
+    const q=getQuarterFromWW(selectedWW);
+    const qStartWW=(q-1)*13+1;
+    const qEndWW=q*13;
+    let qtdT=0,qtdA=0;
+    for(let ww=qStartWW;ww<=qEndWW;ww++){
+      // Targets: sum all weeks in quarter (full Q denominator)
+      const {target,actual}=getOSForWW(code,ww);
+      qtdT+=target;
+      // Actuals: only up to selectedWW (can't count future weeks)
+      if(ww<=selectedWW) qtdA+=actual;
+    }
+    return qtdT>0?parseFloat(Math.min((qtdA/qtdT*100),100).toFixed(1)):null;
+  }
+
+  return null;
+}
+function getFPYForWW(code, ww){
+  // Returns {sub, rej} for a single week (sum of per-day entries)
+  const ws=weekStore[ww];
+  if(!ws||!ws.coordData||!ws.coordData[code]) return {sub:0,rej:0};
+  const d=ws.coordData[code];
+  const maxDay=ww<CURRENT_WW?5:(ww===CURRENT_WW?Math.max(0,getDayIdxForSelectedWW(ww))+1:0);
+  let sub=0,rej=0;
+  for(let i=0;i<maxDay;i++){
+    sub+=parseFloat(d.fpy_sub&&d.fpy_sub[i])||0;
+    rej+=parseFloat(d.fpy_rej&&d.fpy_rej[i])||0;
+  }
+  return {sub,rej};
+}
+
+function getFPY(code,period){
+  if(isFutureWW(selectedWW)) return null;
+  const d=activeData()[code];
+  if(!d) return null;
+  const per=period||cp;
+
+  if(per==='daily'){
+    const i=getActiveDayIdx();
+    const s=parseFloat(d.fpy_sub&&d.fpy_sub[i])||0;
+    const r=parseFloat(d.fpy_rej&&d.fpy_rej[i])||0;
+    return s>0?parseFloat(Math.min(((s-r)/s)*100,100).toFixed(1)):null;
+  }
+  if(per==='wtd'){
+    const {sub,rej}=getFPYForWW(code,selectedWW);
+    return sub>0?parseFloat(Math.min(((sub-rej)/sub)*100,100).toFixed(1)):null;
+  }
+  if(per==='mtd'){
+    const wwStart=getWWStartDate(selectedWW);
+    const month=wwStart.getMonth(),year=wwStart.getFullYear();
+    let totalS=0,totalR=0;
+    for(let ww=1;ww<=selectedWW;ww++){
+      const wStart=getWWStartDate(ww);
+      if(wStart.getFullYear()!==year||wStart.getMonth()!==month) continue;
+      const {sub,rej}=getFPYForWW(code,ww);
+      totalS+=sub;totalR+=rej;
+    }
+    return totalS>0?parseFloat(Math.min(((totalS-totalR)/totalS)*100,100).toFixed(1)):null;
+  }
+  if(per==='qtd'){
+    const q=getQuarterFromWW(selectedWW);
+    const qStartWW=(q-1)*13+1;
+    let totalS=0,totalR=0;
+    for(let ww=qStartWW;ww<=selectedWW;ww++){
+      const {sub,rej}=getFPYForWW(code,ww);
+      totalS+=sub;totalR+=rej;
+    }
+    return totalS>0?parseFloat(Math.min(((totalS-totalR)/totalS)*100,100).toFixed(1)):null;
+  }
+  return null;
+}
+
+function getAttForWW(code, ww){
+  // Returns {present, denominator} for a single week
+  // Excludes holidays and days before trainee start date
+  // For current week: only counts elapsed days (not the full week)
+  const d=getWeekStore(ww).coordData[code];
+  if(!d) return {present:0,denom:0};
+  // Limit to elapsed days for current week; full 5 for past weeks
+  const maxDay=ww<CURRENT_WW?5:(ww===CURRENT_WW?Math.max(0,getDayIdxForSelectedWW(ww))+1:0);
+  let present=0, denom=0;
+  for(let i=0;i<maxDay;i++){
+    if(!isDayActive(code,ww,i)) continue; // before trainee start
+    // Holiday logic:
+    // Holiday only (no attendance) → excluded from denom (not required to work)
+    // Holiday + Attendance → counts in denom (required to work, came in)
+    // Holiday + No Attendance → counts in denom (required to work, absent)
+    const isHoliday=d.holiday&&d.holiday[i];
+    const isPresent=d.attendance&&d.attendance[i];
+    if(isHoliday&&!isPresent) continue; // holiday, not required or didn't come in
+    denom++;
+    if(isPresent) present++;
+  }
+  return {present,denom};
+}
+
+function getAtt(code,period){
+  // Future weeks have no data yet
+  if(isFutureWW(selectedWW)) return 0;
+  const d=activeData()[code];
+  const todayIdx=getDayIdxForSelectedWW(selectedWW);
+
+  if(period==='daily'){
+    const i=getActiveDayIdx();
+    if(!isDayActive(code,selectedWW,i)) return 0;
+    const isHoliday=d.holiday&&d.holiday[i];
+    const isPresent=d.attendance&&d.attendance[i];
+    // Holiday only (not present) → not required to work → full credit
+    if(isHoliday&&!isPresent) return 100;
+    // Holiday + present → required to work, came in → 100%
+    // No holiday, present → 100%
+    // No holiday, absent → 0%
+    return isPresent?100:0;
+  }
+
+  if(period==='wtd'){
+    // Current week only — use holiday + start date aware calc
+    const {present,denom}=getAttForWW(code,selectedWW);
+    return denom>0?parseFloat(Math.min((present/denom)*100,100).toFixed(1)):0;
+  }
+
+  if(period==='mtd'){
+    // Sum across all weeks in current month up to selected WW
+    const wwStart=getWWStartDate(selectedWW);
+    const month=wwStart.getMonth(), year=wwStart.getFullYear();
+    let totalPresent=0, totalDenom=0;
+    for(let ww=1;ww<=selectedWW;ww++){
+      const wStart=getWWStartDate(ww);
+      if(wStart.getMonth()!==month||wStart.getFullYear()!==year) continue;
+      const {present,denom}=getAttForWW(code,ww);
+      totalPresent+=present; totalDenom+=denom;
+    }
+    return totalDenom>0?parseFloat(Math.min((totalPresent/totalDenom)*100,100).toFixed(1)):0;
+  }
+
+  if(period==='qtd'){
+    // Elapsed days only — actual attendance rate so far this quarter
+    // Both present and denominator: WW(qStart)..selectedWW elapsed days only
+    const q=getQuarterFromWW(selectedWW);
+    const qStartWW=(q-1)*13+1;
+    let totalPresent=0, totalDenom=0;
+    for(let ww=qStartWW;ww<=selectedWW;ww++){
+      const {present,denom}=getAttForWW(code,ww);
+      totalPresent+=present;
+      totalDenom+=denom;
+    }
+    return totalDenom>0?parseFloat(Math.min((totalPresent/totalDenom*100),100).toFixed(1)):0;
+  }
+  return 0;
+}
+function getCallForWW(code, ww){
+  const ws=weekStore[ww];
+  if(!ws||!ws.coordData||!ws.coordData[code]) return {received:0,answered:0};
+  const d=ws.coordData[code];
+  const maxDay=ww<CURRENT_WW?5:(ww===CURRENT_WW?Math.max(0,getDayIdxForSelectedWW(ww))+1:0);
+  let received=0,answered=0;
+  for(let i=0;i<maxDay;i++){
+    received+=parseFloat(d.call_received&&d.call_received[i])||0;
+    answered+=parseFloat(d.call_answered&&d.call_answered[i])||0;
+  }
+  return {received,answered};
+}
+
+function getCall(code,period){
+  if(isFutureWW(selectedWW)) return 0;
+  const d=activeData()[code];
+  if(!d) return 0;
+  const per=period||cp;
+  // Target 95% is used as performance band threshold only, not in score calculation
+
+  function callScore(received,answered){
+    if(received===0) return null;
+    return parseFloat(Math.min((answered/received)*100,100).toFixed(1));
+  }
+
+  if(per==='daily'){
+    const i=getActiveDayIdx();
+    const r=parseFloat(d.call_received&&d.call_received[i])||0;
+    const a=parseFloat(d.call_answered&&d.call_answered[i])||0;
+    return callScore(r,a)??0;
+  }
+  if(per==='wtd'){
+    const {received,answered}=getCallForWW(code,selectedWW);
+    return callScore(received,answered)??0;
+  }
+  if(per==='mtd'){
+    const wwStart=getWWStartDate(selectedWW);
+    const month=wwStart.getMonth(),year=wwStart.getFullYear();
+    let totalR=0,totalA=0;
+    for(let ww=1;ww<=selectedWW;ww++){
+      const wStart=getWWStartDate(ww);
+      if(wStart.getFullYear()!==year||wStart.getMonth()!==month) continue;
+      const {received,answered}=getCallForWW(code,ww);
+      totalR+=received;totalA+=answered;
+    }
+    return callScore(totalR,totalA)??0;
+  }
+  if(per==='qtd'){
+    const q=getQuarterFromWW(selectedWW);
+    const qStartWW=(q-1)*13+1;
+    let totalR=0,totalA=0;
+    for(let ww=qStartWW;ww<=selectedWW;ww++){
+      const {received,answered}=getCallForWW(code,ww);
+      totalR+=received;totalA+=answered;
+    }
+    return callScore(totalR,totalA)??0;
+  }
+  return 0;
+}
+
+function getSupForWW(code, ww){
+  const ws=weekStore[ww];
+  if(!ws||!ws.coordData||!ws.coordData[code]) return {assigned:0,completed:0};
+  const d=ws.coordData[code];
+  const maxDay=ww<CURRENT_WW?5:(ww===CURRENT_WW?Math.max(0,getDayIdxForSelectedWW(ww))+1:0);
+  let assigned=0,completed=0;
+  for(let i=0;i<maxDay;i++){
+    assigned+=parseFloat(d.sup_assigned&&d.sup_assigned[i])||0;
+    completed+=parseFloat(d.sup_completed&&d.sup_completed[i])||0;
+  }
+  return {assigned,completed};
+}
+
+function getSupervisor(code,period){
+  if(isFutureWW(selectedWW)) return 0;
+  const d=activeData()[code];
+  if(!d) return 0;
+  const per=period||cp;
+
+  function supScore(assigned,completed){
+    if(assigned===0) return null;
+    return parseFloat(Math.min((completed/assigned)*100,100).toFixed(1));
+  }
+
+  if(per==='daily'){
+    const i=getActiveDayIdx();
+    const a=parseFloat(d.sup_assigned&&d.sup_assigned[i])||0;
+    const c=parseFloat(d.sup_completed&&d.sup_completed[i])||0;
+    return supScore(a,c)??0;
+  }
+  if(per==='wtd'){
+    const {assigned,completed}=getSupForWW(code,selectedWW);
+    return supScore(assigned,completed)??0;
+  }
+  if(per==='mtd'){
+    const wwStart=getWWStartDate(selectedWW);
+    const month=wwStart.getMonth(),year=wwStart.getFullYear();
+    let totalA=0,totalC=0;
+    for(let ww=1;ww<=selectedWW;ww++){
+      const wStart=getWWStartDate(ww);
+      if(wStart.getFullYear()!==year||wStart.getMonth()!==month) continue;
+      const {assigned,completed}=getSupForWW(code,ww);
+      totalA+=assigned;totalC+=completed;
+    }
+    return supScore(totalA,totalC)??0;
+  }
+  if(per==='qtd'){
+    const q=getQuarterFromWW(selectedWW);
+    const qStartWW=(q-1)*13+1;
+    let totalA=0,totalC=0;
+    for(let ww=qStartWW;ww<=selectedWW;ww++){
+      const {assigned,completed}=getSupForWW(code,ww);
+      totalA+=assigned;totalC+=completed;
+    }
+    return supScore(totalA,totalC)??0;
+  }
+  return 0;
+}
+
+function getOv(code,period){
+  if(isFutureWW(selectedWW)) return 0;
+  const d=activeData()[code];
+  if(!d) return 0; // safety guard
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c) return 0;
+  const w=getW(getCoordFn(code),c.isTrainee,code);
+  const oS=getOS(code,period),fS=getFPY(code,period),aS=getAtt(code,period),cS=getCall(code,period),sS=getSupervisor(code,period);
+  let t=0;
+  if(w.output!==null&&oS!==null)t+=oS*(w.output/100);
+  if(w.fpy!==null&&fS!==null)t+=fS*(w.fpy/100);
+  if(w.call!==null)t+=cS*(w.call/100);
+  if(w.attendance!==null)t+=aS*(w.attendance/100);
+  if(w.supervisor!==null)t+=sS*(w.supervisor/100);
+  return parseFloat(t.toFixed(1));
+}
+function sc(v){if(v>=90)return'#059669';if(v>=75)return'#1a56a0';if(v>=60)return'#d97706';return'#dc2626';}
+function sb(v){if(v>=90)return'sb-g';if(v>=75)return'sb-b';if(v>=60)return'sb-a';return'sb-r';}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────
+function collectDOM(){
+  if(isReadonlyWW(selectedWW)||isFutureWW(selectedWW)) return;
+  const d=activeData();
+  getAllCoords().forEach(c=>{
+    for(let i=0;i<5;i++){
+      const t=document.getElementById(`tgt-${c.code}-${i}`),a=document.getElementById(`act-${c.code}-${i}`);
+      if(t&&!t.disabled) d[c.code].targets[i]=parseFloat(t.value)||0;
+      if(a&&!a.disabled) d[c.code].actuals[i]=parseFloat(a.value)||0;
+      const att=document.getElementById(`att-${c.code}-${i}`);
+      if(att&&!att.disabled) d[c.code].attendance[i]=att.checked;
+      const hol=document.getElementById(`hol-${c.code}-${i}`);
+      if(hol&&!hol.disabled){
+        if(!d[c.code].holiday) d[c.code].holiday=[false,false,false,false,false];
+        d[c.code].holiday[i]=hol.checked;
+      }
+      // FPY per-day
+      const fpySub=document.querySelector(`input[oninput*="fpy_sub[${i}]"][oninput*="${c.code}"]`);
+      const fpyRej=document.querySelector(`input[oninput*="fpy_rej[${i}]"][oninput*="${c.code}"]`);
+      if(fpySub&&!fpySub.disabled){if(!d[c.code].fpy_sub)d[c.code].fpy_sub=[0,0,0,0,0];d[c.code].fpy_sub[i]=parseFloat(fpySub.value)||0;}
+      if(fpyRej&&!fpyRej.disabled){if(!d[c.code].fpy_rej)d[c.code].fpy_rej=[0,0,0,0,0];d[c.code].fpy_rej[i]=parseFloat(fpyRej.value)||0;}
+      // Call per-day
+      const callRec=document.querySelector(`input[oninput*="call_received[${i}]"][oninput*="${c.code}"]`);
+      const callAns=document.querySelector(`input[oninput*="call_answered[${i}]"][oninput*="${c.code}"]`);
+      if(callRec&&!callRec.disabled){if(!d[c.code].call_received)d[c.code].call_received=[0,0,0,0,0];d[c.code].call_received[i]=parseFloat(callRec.value)||0;}
+      if(callAns&&!callAns.disabled){if(!d[c.code].call_answered)d[c.code].call_answered=[0,0,0,0,0];d[c.code].call_answered[i]=parseFloat(callAns.value)||0;}
+      // Supervisor per-day
+      const supAsgn=document.querySelector(`input[oninput*="sup_assigned[${i}]"][oninput*="${c.code}"]`);
+      const supComp=document.querySelector(`input[oninput*="sup_completed[${i}]"][oninput*="${c.code}"]`);
+      if(supAsgn&&!supAsgn.disabled){if(!d[c.code].sup_assigned)d[c.code].sup_assigned=[0,0,0,0,0];d[c.code].sup_assigned[i]=parseFloat(supAsgn.value)||0;}
+      if(supComp&&!supComp.disabled){if(!d[c.code].sup_completed)d[c.code].sup_completed=[0,0,0,0,0];d[c.code].sup_completed[i]=parseFloat(supComp.value)||0;}
+    }
+    ['call','supervisor'].forEach(m=>{const el=document.getElementById(`${m}-${c.code}`);if(el)d[c.code][m]=parseFloat(el.value)||0;});
+    const fs=document.getElementById(`fs-sub-${c.code}`),fr=document.getElementById(`fs-rej-${c.code}`);
+    if(fs)d[c.code].fpy_submitted=parseFloat(fs.value)||0;
+    if(fr)d[c.code].fpy_rejected=parseFloat(fr.value)||0;
+    const mt=document.getElementById(`mt-${c.code}`),ma=document.getElementById(`ma-${c.code}`);
+    const qt=document.getElementById(`qt-${c.code}`),qa=document.getElementById(`qa-${c.code}`);
+    if(mt)d[c.code].mtd_target_override=mt.value!==''?parseFloat(mt.value):null;
+    if(ma)d[c.code].mtd_actual_override=ma.value!==''?parseFloat(ma.value):null;
+    if(qt)d[c.code].qtd_target_override=qt.value!==''?parseFloat(qt.value):null;
+    if(qa)d[c.code].qtd_actual_override=qa.value!==''?parseFloat(qa.value):null;
+  });
+}
+
+function exportData(){
+  collectDOM();
+  const payload={version:'2.6',timezone:'America/Denver',exportedAt:fmtMT(),currentWW:selectedWW,coordActive:{...coordActive},coordFn:{...coordFn},traineeStart:{...traineeStart},dynamicCoords:[...dynamicCoords],rosterMutations:{...rosterMutations},weeks:{}};
+  Object.keys(weekStore).forEach(ww=>{
+    const ws=weekStore[ww];
+    payload.weeks[ww]={
+      coordData:JSON.parse(JSON.stringify(ws.coordData)),
+      fnToggles:JSON.parse(JSON.stringify(ws.fnToggles)),
+    };
+  });
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;
+  a.download='SPWR-Leaderboard-Data.json';
+  a.click();URL.revokeObjectURL(url);
+  showSt(`✓ Exported all weeks (WW${selectedWW} active)`,true);
+}
+
+function sanitizeCoordData(d){
+  // Ensure all required fields exist with safe defaults — backwards compatible
+  if(!d||typeof d!=='object') d={};
+  const arr5=(v,def)=>Array.isArray(v)&&v.length===5?v:[def,def,def,def,def];
+  return {
+    targets:      arr5(d.targets,0),
+    actuals:      arr5(d.actuals,0),
+    attendance:   arr5(d.attendance,false),
+    holiday:      arr5(d.holiday,false),
+    call_received: arr5(d.call_received,0),
+    call_answered: arr5(d.call_answered,0),
+    fpy_sub:       arr5(d.fpy_sub,0),
+    fpy_rej:       arr5(d.fpy_rej,0),
+    sup_assigned:  arr5(d.sup_assigned,0),
+    sup_completed: arr5(d.sup_completed,0),
+    mtd_target_override: d.mtd_target_override??null,
+    mtd_actual_override: d.mtd_actual_override??null,
+    qtd_target_override: d.qtd_target_override??null,
+    qtd_actual_override: d.qtd_actual_override??null,
+    on: {
+      output:     d.on?.output     !== undefined ? d.on.output     : true,
+      fpy:        d.on?.fpy        !== undefined ? d.on.fpy        : true,
+      call:       d.on?.call       !== undefined ? d.on.call       : true,
+      attendance: d.on?.attendance !== undefined ? d.on.attendance : true,
+      supervisor: d.on?.supervisor !== undefined ? d.on.supervisor : true,
+    },
+  };
+}
+
+function importData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const p=JSON.parse(e.target.result);
+      if(!p.version)throw new Error('Invalid file — missing version field');
+
+      // ── MULTI-WEEK FORMAT (v2.6+) ─────────────────────────────────
+      if(p.weeks){
+        Object.keys(p.weeks).forEach(ww=>{
+          const wwNum=parseInt(ww);
+          const ws=p.weeks[ww];
+          const sanitizedCoordData={};
+          if(ws.coordData){
+            Object.keys(ws.coordData).forEach(code=>{
+              sanitizedCoordData[code]=sanitizeCoordData(ws.coordData[code]);
+            });
+          }
+          // Backfill any coord missing from this week's JSON — prevents undefined crash
+          getAllCoords().forEach(c=>{
+            if(!sanitizedCoordData[c.code]){
+              const dt=getDailyTarget(c.code,wwNum)||0;
+              const defaultOn=c.isTrainee
+                ?{output:false,fpy:false,call:false,attendance:true,supervisor:true}
+                :{output:true,fpy:true,call:true,attendance:true,supervisor:true};
+              sanitizedCoordData[c.code]={
+                targets:[dt,dt,dt,dt,dt],actuals:[0,0,0,0,0],
+                attendance:[false,false,false,false,false],
+                holiday:[false,false,false,false,false],
+                fpy_submitted:0,fpy_rejected:0,call:0,supervisor:0,
+                mtd_target_override:null,mtd_actual_override:null,
+                qtd_target_override:null,qtd_actual_override:null,
+                on:{...defaultOn},
+              };
+            }
+          });
+          weekStore[wwNum]={coordData:sanitizedCoordData,fnToggles:ws.fnToggles||emptyFnToggles()};
+        });
+        if(p.currentWW) selectedWW=p.currentWW;
+      }
+
+      // ── SINGLE-WEEK FORMAT (v2.5 legacy) ─────────────────────────
+      else if(p.data){
+        const store=getWeekStore(CURRENT_WW);
+        COORDS.forEach(c=>{
+          const s=p.data[c.code];if(!s)return;
+          store.coordData[c.code]=sanitizeCoordData({
+            targets:[getDailyTarget(c.code,CURRENT_WW),getDailyTarget(c.code,CURRENT_WW),getDailyTarget(c.code,CURRENT_WW),getDailyTarget(c.code,CURRENT_WW),getDailyTarget(c.code,CURRENT_WW)],
+            actuals:[0,0,0,0,0],
+            attendance:[false,false,false,false,false],
+            holiday:[false,false,false,false,false],
+            mtd_target_override:s.carry_mtd_target??null,
+            mtd_actual_override:s.carry_mtd_actual??null,
+            qtd_target_override:s.carry_qtd_target??null,
+            qtd_actual_override:s.carry_qtd_actual??null,
+            fpy_submitted:s.fpy_submitted||0,
+            fpy_rejected:s.fpy_rejected||0,
+            call:s.call||0,
+            supervisor:0,
+            on:s.on||null,
+          });
+        });
+        if(p.fnToggles)FNS.forEach(fn=>{if(p.fnToggles[fn])Object.assign(store.fnToggles[fn],p.fnToggles[fn]);});
+        selectedWW=CURRENT_WW;
+      }
+
+      // ── RESTORE GLOBAL STATE ──────────────────────────────────────
+      // coordActive — safe merge: only update known codes, default true for unknowns
+      if(p.coordActive){
+        Object.keys(p.coordActive).forEach(code=>{
+          coordActive[code]=p.coordActive[code]===false?false:true;
+        });
+      }
+      // coordFn — team reassignments
+      if(p.coordFn){
+        Object.keys(p.coordFn).forEach(code=>{coordFn[code]=p.coordFn[code];});
+      }
+      // rosterMutations — built-in coord field overrides
+      if(p.rosterMutations){
+        Object.keys(p.rosterMutations).forEach(code=>{
+          rosterMutations[code]=p.rosterMutations[code];
+        });
+        applyRosterMutations(); // apply to COORDS objects
+      }
+      // traineeStart — start dates
+      if(p.traineeStart){
+        Object.keys(p.traineeStart).forEach(code=>{
+          const ts=p.traineeStart[code];
+          traineeStart[code]={
+            ww: parseInt(ts.ww)||1,
+            day: parseInt(ts.day)||0,
+          };
+        });
+      }
+      // dynamicCoords — coordinators added at runtime
+      if(p.dynamicCoords&&Array.isArray(p.dynamicCoords)&&p.dynamicCoords.length){
+        dynamicCoords.length=0;
+        p.dynamicCoords.forEach(c=>{
+          // Validate required fields before pushing
+          if(!c.code||!c.name||!c.fn) return;
+          dynamicCoords.push({
+            code:c.code, name:c.name, fn:c.fn,
+            ncg:c.ncg||false, isSup:c.isSup||false,
+            isTrainee:c.isTrainee||false,
+            dailyTarget:c.dailyTarget||null,
+            active:c.active!==false,
+          });
+          // Ensure data store exists for each week
+          Object.keys(weekStore).forEach(ww=>{
+            if(!weekStore[ww].coordData[c.code]){
+              weekStore[ww].coordData[c.code]=sanitizeCoordData({});
+            }
+          });
+          // Also init coordActive if not set
+          if(coordActive[c.code]===undefined) coordActive[c.code]=true;
+        });
+      }
+
+      // ── REBUILD UI ────────────────────────────────────────────────
+      // Clear future week data from imported JSON
+      const todayDayIdxImp=getDayIdxForSelectedWW(CURRENT_WW);
+      for(let ww=CURRENT_WW;ww<=52;ww++){
+        if(weekStore[ww]){
+          Object.keys(weekStore[ww].coordData).forEach(code=>{
+            const d=weekStore[ww].coordData[code];
+            if(ww>CURRENT_WW){
+              const _dt=getDailyTarget(code,ww)||0;d.targets=[_dt,_dt,_dt,_dt,_dt];
+              d.actuals=[0,0,0,0,0];d.attendance=[false,false,false,false,false];
+              d.holiday=[false,false,false,false,false];
+              d.fpy_submitted=0;d.fpy_rejected=0;d.call=0;d.supervisor=0;
+            } else {
+              for(let i=todayDayIdxImp+1;i<5;i++){
+                d.actuals[i]=0;d.attendance[i]=false;d.holiday[i]=false;
+              }
+            }
+          });
+        }
+      }
+      fixRSCTargets(); // correct RSC targets to 3.2 across all weeks
+      buildWWSelector(); // must come before updateWWUI
+      updateWWUI();
+      buildFnTabs();
+      buildToggles();
+      buildForm();
+      buildHiddenPanel();
+      renderLB();
+      if(document.getElementById('tab-roster')&&document.getElementById('tab-roster').style.display!=='none') renderRoster();
+      showSt('✓ Imported successfully',true);
+    }catch(err){
+      console.error('Import error:',err);
+      const errMsg=err&&err.message?err.message:(err?String(err):'Unknown error');
+      showSt('✗ Import failed: '+errMsg,false);
+    }
+    event.target.value='';
+  };reader.readAsText(file);
+}
+
+function showSt(msg,ok){
+  const el=document.getElementById('import-status');
+  el.textContent=msg;el.className=`import-status ${ok?'import-ok':'import-err'}`;
+  el.style.display='inline-block';setTimeout(()=>{el.style.display='none';},5000);
+}
+function confirmClear(){
+  document.getElementById('clear-ww-label').textContent=`WW${selectedWW} (${getWWDateRange(selectedWW)})`;
+  document.getElementById('clear-modal').classList.add('show');
+}
+function closeModal(){document.getElementById('clear-modal').classList.remove('show');}
+function clearWeekData(){
+  weekStore[selectedWW]={coordData:emptyCoordData(selectedWW),fnToggles:emptyFnToggles()};
+  closeModal();buildToggles();buildForm();
+  showSt(`✓ WW${selectedWW} data reset`,true);
+}
+
+// ── PERIOD ────────────────────────────────────────────────────────────
+function setPeriod(p,btn){
+  cp=p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // Show day pills only for Daily period
+  const pillsRow=document.getElementById('day-pills');
+  if(pillsRow){
+    if(p==='daily'){
+      pillsRow.style.display='flex';
+      updateDayPills();
+    } else {
+      pillsRow.style.display='none';
+      selectedDayIdx=-1; // reset to today when leaving daily
+    }
+  }
+  buildToggles();buildForm();
+  if(document.getElementById('tab-leaderboard').style.display!=='none')renderLB();
+}
+
+// ── FN TABS ───────────────────────────────────────────────────────────
+function buildFnTabs(){
+  document.getElementById('fn-tabs').innerHTML=FNS.map(fn=>
+    `<button class="e-tab${fn===cft?' active':''}" onclick="switchFn('${fn}',this)">${fn}</button>`
+  ).join('');
+}
+function switchFn(fn,btn){
+  cft=fn;document.querySelectorAll('.e-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');buildToggles();buildForm();
+}
+
+// ── TOGGLES ───────────────────────────────────────────────────────────
+function buildToggles(){
+  const fn=cft,ft=activeFnt()[fn],w=getW(fn,false,null);
+  document.getElementById('fn-toggles').innerHTML=
+    `<span style="font-size:11px;font-weight:600;color:#555;margin-right:4px;">Team toggles:</span>`+
+    METRICS.map(m=>{const on=ft[m],wv=w[m]!==null?w[m].toFixed(1)+'%':'—';
+      return`<label class="toggle-item ${on?'mon':'moff'}">
+        <input type="checkbox" ${on?'checked':''} onchange="togFn('${fn}','${m}',this.checked)">
+        ${ML[m]}<span class="weight-pill ${on?'wp-on':'wp-off'}">${wv}</span></label>`;
+    }).join('');
+}
+function togFn(fn,m,v){
+  activeFnt()[fn][m]=v;buildToggles();buildForm();
+  if(document.getElementById('tab-weights').style.display!=='none')renderWT();
+}
+
+// ── COORD METRIC TOGGLE ───────────────────────────────────────────────
+function toggleCoordMetric(code,metric){
+  activeData()[code].on[metric]=!activeData()[code].on[metric];
+  const pill=document.getElementById(`pill-${code}-${metric}`);
+  if(pill){
+    const on=activeData()[code].on[metric];
+    pill.className=`metric-pill ${on?'pill-on':'pill-off'}`;
+  }
+  rxOv(code);
+}
+
+// ── PRIOR WEEKS COLLAPSE ──────────────────────────────────────────────
+// showAddCoordModal defined below
+
+function addTrainee(){
+  const code=document.getElementById('new-trainee-code').value.trim().toUpperCase();
+  const name=document.getElementById('new-trainee-name').value.trim();
+  const fn=document.getElementById('new-trainee-fn').value;
+  const ww=parseInt(document.getElementById('new-trainee-ww').value);
+  const day=parseInt(document.getElementById('new-trainee-day').value);
+  const errEl=document.getElementById('add-trainee-error');
+
+  // Validate
+  if(!code||code.length<2){errEl.textContent='Code must be 2-4 characters.';errEl.style.display='block';return;}
+  if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return;}
+  if(getAllCoords().find(c=>c.code===code)){errEl.textContent='Code already exists.';errEl.style.display='block';return;}
+
+  // Add to dynamicCoords
+  const newCoord={code,name,fn,ncg:false,isSup:false,isTrainee:true,dailyTarget:null,active:true};
+  dynamicCoords.push(newCoord);
+  coordActive[code]=true;
+  traineeStart[code]={ww,day};
+
+  // Init data in all week stores
+  Object.keys(weekStore).forEach(wwKey=>{
+    const dt=0;
+    weekStore[wwKey].coordData[code]={
+      targets:[dt,dt,dt,dt,dt],actuals:[0,0,0,0,0],
+      attendance:[false,false,false,false,false],
+      holiday:[false,false,false,false,false],
+      fpy_submitted:0,fpy_rejected:0,call:0,supervisor:0,
+      mtd_target_override:null,mtd_actual_override:null,
+      qtd_target_override:null,qtd_actual_override:null,
+      on:{output:false,fpy:false,call:false,attendance:true,supervisor:true},
+    };
+  });
+  // Also init for current week if not in weekStore
+  if(!weekStore[selectedWW]) weekStore[selectedWW]={coordData:emptyCoordData(selectedWW),fnToggles:emptyFnToggles()};
+  weekStore[selectedWW].coordData[code]={
+    targets:[0,0,0,0,0],actuals:[0,0,0,0,0],
+    attendance:[false,false,false,false,false],
+    holiday:[false,false,false,false,false],
+    fpy_submitted:0,fpy_rejected:0,call:0,supervisor:0,
+    mtd_target_override:null,mtd_actual_override:null,
+    qtd_target_override:null,qtd_actual_override:null,
+    on:{output:false,fpy:false,call:false,attendance:true,supervisor:true},
+  };
+
+  document.getElementById('add-trainee-modal').classList.remove('show');
+  // Switch to their function tab
+  cft=fn;buildFnTabs();buildToggles();buildForm();buildHiddenPanel();
+  showSt(`✓ ${name} (${code}) added as trainee in ${fn}`,true);
+}
+
+
+// ── ROSTER TAB ────────────────────────────────────────────────────────
+const FNS_LIST=['Funding','Licensing','Permitting','HOA','Utilities','Safety','Roofing'];
+
+function renderRoster(){
+  const all=getAllCoords();
+  const isViewMode=viewMode==='view'||urlViewMode;
+  const rows=all.map(c=>{
+    const isT=c.isTrainee,isSup=c.isSup;
+    const role=isT?'Trainee':isSup?'Supervisor':'Regular';
+    const sw=getTraineeStartWW(c.code),sd=getTraineeStartDay(c.code);
+    const isHidden=coordActive[c.code]===false;
+    const isStatic=COORDS.find(x=>x.code===c.code); // static = in original COORDS
+    const isDynamic=!isStatic;
+    const dayNames=['Mon','Tue','Wed','Thu','Fri'];
+    const fnColor={'Funding':'fn-Funding','Licensing':'fn-Licensing','Permitting':'fn-Permitting',
+      'HOA':'fn-HOA','Utilities':'fn-Utilities','Safety':'fn-Safety','Roofing':'fn-Roofing'};
+    const effectiveFn=getCoordFn(c.code);
+
+    return `<tr style="${isHidden?'opacity:.5;background:#fffdf0;':''}">
+      <td><span style="font-weight:600;font-size:12px;">${c.code}</span></td>
+      <td>${isViewMode
+        ? `<span style="font-size:12px;">${c.name}</span>`
+        : `<input class="roster-input" style="min-width:160px;" value="${c.name}"
+        onchange="rosterUpdateName('${c.code}',this.value)">`
+      }</td>
+      <td>${isViewMode
+        ? `<span class="fn-label fn-${effectiveFn}">${effectiveFn}</span>`
+        : `<select class="roster-select" style="min-width:100px;" onchange="rosterUpdateFn('${c.code}',this.value)">
+          ${FNS_LIST.map(f=>'<option value="'+f+'" '+(effectiveFn===f?'selected':'')+'>'+f+'</option>').join('')}
+        </select>`
+      }</td>
+      <td>${isViewMode
+        ? `<span style="font-size:12px;">${isT?'Trainee':isSup?'Supervisor':'Regular'}</span>`
+        : `<select class="roster-select" onchange="rosterUpdateRole('${c.code}',this.value)">
+          <option value="Regular" ${!isT&&!isSup?'selected':''}>Regular</option>
+          <option value="Trainee" ${isT?'selected':''}>Trainee</option>
+          <option value="Supervisor" ${isSup?'selected':''}>Supervisor</option>
+        </select>`
+      }</td>
+      <td style="text-align:center;">${isViewMode
+        ? `<span style="font-size:12px;">${c.ncg?'✓':'—'}</span>`
+        : `<input type="checkbox" ${c.ncg?'checked':''} onchange="rosterUpdateNCG('${c.code}',this.checked)" title="NCG">`
+      }</td>
+      <td>${isViewMode
+        ? `<span style="font-size:12px;text-align:center;display:block;">${c.dailyTarget||'—'}</span>`
+        : `<input class="roster-input" type="number" min="0" step="0.1" style="width:65px;text-align:center;"
+        value="${c.dailyTarget||''}" placeholder="—"
+        onchange="rosterUpdateTarget('${c.code}',this.value)">`
+      }</td>
+      <td style="${!isT?'opacity:.3;':''}">${isViewMode
+        ? `<span style="font-size:12px;">${isT?'WW'+sw:'—'}</span>`
+        : `<select class="roster-select" style="width:70px;" ${!isT?'disabled':''} onchange="setTraineeStart('${c.code}','ww',parseInt(this.value))">
+          ${Array.from({length:52},(_,i)=>'<option value="'+(i+1)+'" '+(sw===i+1?'selected':'')+'>WW'+(i+1)+'</option>').join('')}
+        </select>`
+      }</td>
+      <td style="${!isT?'opacity:.3;':''}">${isViewMode
+        ? `<span style="font-size:12px;">${isT?dayNames[sd]:'—'}</span>`
+        : `<select class="roster-select" style="width:60px;" ${!isT?'disabled':''} onchange="setTraineeStart('${c.code}','day',parseInt(this.value))">
+          ${dayNames.map((d,i)=>'<option value="'+i+'" '+(sd===i?'selected':'')+'>'+d+'</option>').join('')}
+        </select>`
+      }</td>
+      <td>${isViewMode
+        ? `<span style="font-size:11px;color:${isHidden?'#92400e':'#059669'};">${isHidden?'Hidden':'Active'}</span>`
+        : `<button class="roster-hide ${isHidden?'hidden':''}" onclick="rosterToggleActive('${c.code}',this)">${isHidden?'↩ Restore':'Hide'}</button>`
+      }</td>
+      <td>${isViewMode
+        ? ''
+        : isDynamic
+          ? `<button class="roster-remove" onclick="rosterRemove('${c.code}')">✕ Remove</button>`
+          : `<span style="font-size:9px;color:#ccc;">Built-in</span>`
+      }</td>
+    </tr>`;
+  });
+  document.getElementById('roster-body').innerHTML=rows.join('');
+}
+
+function rosterUpdateName(code,val){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c) return;
+  c.name=val.trim();
+  if(COORDS.find(x=>x.code===code)){if(!rosterMutations[code])rosterMutations[code]={};rosterMutations[code].name=val.trim();}
+  buildForm();renderLB();scheduleAutoSave();
+}
+function rosterUpdateFn(code,fn){
+  reassignCoord(code,fn);
+  renderRoster();
+}
+function rosterUpdateRole(code,role){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c) return;
+  c.isTrainee=role==='Trainee';
+  c.isSup=role==='Supervisor';
+  if(COORDS.find(x=>x.code===code)){
+    if(!rosterMutations[code])rosterMutations[code]={};
+    rosterMutations[code].isTrainee=c.isTrainee;
+    rosterMutations[code].isSup=c.isSup;
+  }
+  // Update default metric on/off when switching to/from trainee
+  if(role==='Trainee'){
+    Object.keys(weekStore).forEach(ww=>{
+      const d=weekStore[ww].coordData[code];
+      if(d) d.on={output:false,fpy:false,call:false,attendance:true,supervisor:true};
+    });
+    if(!traineeStart[code]) traineeStart[code]={ww:CURRENT_WW,day:0};
+  } else {
+    Object.keys(weekStore).forEach(ww=>{
+      const d=weekStore[ww].coordData[code];
+      if(d) d.on={output:true,fpy:true,call:true,attendance:true,supervisor:true};
+    });
+    delete traineeStart[code];
+  }
+  renderRoster();buildFnTabs();buildToggles();buildForm();renderLB();
+}
+function rosterUpdateNCG(code,val){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c) return;
+  c.ncg=val;
+  if(COORDS.find(x=>x.code===code)){if(!rosterMutations[code])rosterMutations[code]={};rosterMutations[code].ncg=val;}
+  buildForm();renderLB();scheduleAutoSave();
+}
+function rosterUpdateTarget(code,val){
+  const c=getAllCoords().find(x=>x.code===code);
+  if(!c) return;
+  c.dailyTarget=val!==''?parseFloat(val):null;
+  if(COORDS.find(x=>x.code===code)){if(!rosterMutations[code])rosterMutations[code]={};rosterMutations[code].dailyTarget=c.dailyTarget;}
+  Object.keys(weekStore).forEach(ww=>{
+    const d=weekStore[ww].coordData[code];
+    if(d){const dt=c.dailyTarget||0;d.targets=[dt,dt,dt,dt,dt];}
+  });
+  buildForm();scheduleAutoSave();
+}
+function rosterToggleActive(code,btn){
+  toggleCoordActive(code);
+  btn.className=`roster-hide ${coordActive[code]===false?'hidden':''}`;
+  btn.textContent=coordActive[code]===false?'↩ Restore':'Hide';
+  renderRoster();
+}
+function rosterRemove(code){
+  if(!confirm(`Remove ${code} from roster? Their data will be lost.`)) return;
+  const idx=dynamicCoords.findIndex(c=>c.code===code);
+  if(idx>=0) dynamicCoords.splice(idx,1);
+  delete coordActive[code];
+  delete coordFn[code];
+  delete traineeStart[code];
+  Object.keys(weekStore).forEach(ww=>{
+    if(weekStore[ww].coordData[code]) delete weekStore[ww].coordData[code];
+  });
+  renderRoster();buildFnTabs();buildToggles();buildForm();renderLB();
+}
+
+// Replace showAddTraineeModal with showAddCoordModal
+function showAddCoordModal(){
+  const wwSel=document.getElementById('new-trainee-ww');
+  if(wwSel) wwSel.innerHTML=Array.from({length:52},(_,i)=>`<option value="${i+1}"${i+1===CURRENT_WW?' selected':''}>WW${i+1}</option>`).join('');
+  const todayDay=getDayIdxForSelectedWW(CURRENT_WW);
+  const daySel=document.getElementById('new-trainee-day');
+  if(daySel) daySel.value=Math.max(0,todayDay);
+  document.getElementById('add-trainee-error').style.display='none';
+  document.getElementById('add-trainee-modal').classList.add('show');
+}
+
+function fixRSCTargets(){
+  // Correct RSC daily target to 3.2 across all stored weeks
+  const rscTarget=getDailyTarget('RSC',1); // always 3.2 now
+  Object.keys(weekStore).forEach(ww=>{
+    const d=weekStore[ww].coordData&&weekStore[ww].coordData['RSC'];
+    if(d) d.targets=[rscTarget,rscTarget,rscTarget,rscTarget,rscTarget];
+  });
+}
+
+function setTraineeStart(code,field,value){
+  if(!traineeStart[code]){
+    // Initialize from COORDS defaults
+    const c=COORDS.find(x=>x.code===code);
+    traineeStart[code]={ww:c&&c.startWW||1,day:c&&c.startDay||0,_explicit:true};
+  }
+  traineeStart[code][field]=value;
+  traineeStart[code]._explicit=true; // mark as manually set — overrides COORDS default
+  buildForm();
+  scheduleAutoSave();
+}
+
+function updateDayPills(){
+  const todayIdx=getDayIdxForSelectedWW(selectedWW);
+  const isPastWW=selectedWW<CURRENT_WW;
+  const days=['Mon','Tue','Wed','Thu','Fri'];
+  for(let i=0;i<5;i++){
+    const pill=document.getElementById('dp-'+i);
+    if(!pill) continue;
+    const isFuture=!isPastWW&&i>todayIdx&&selectedWW===CURRENT_WW;
+    const isToday=!isPastWW&&i===todayIdx&&selectedWW===CURRENT_WW;
+    const effectiveIdx=selectedDayIdx===-1?todayIdx:selectedDayIdx;
+    // Label: show day name, add ● for today
+    pill.textContent=days[i]+(isToday?' ●':'');
+    pill.className='day-pill'+(isToday?' today':'')+(isFuture?' future':'')+(i===effectiveIdx?' active':'');
+  }
+  // For past weeks: all days selectable, no today marker
+  if(isPastWW){
+    const effectiveIdx=selectedDayIdx===-1?4:selectedDayIdx; // default to Friday for past weeks
+    for(let i=0;i<5;i++){
+      const pill=document.getElementById('dp-'+i);
+      if(pill) pill.className='day-pill'+(i===effectiveIdx?' active':'');
+    }
+    if(selectedDayIdx===-1){
+      // Auto-select Friday for past weeks so user sees end-of-week snapshot
+      selectedDayIdx=4;
+    }
+  }
+}
+
+function selectDayPill(dayIdx){
+  selectedDayIdx=dayIdx;
+  updateDayPills();
+  buildForm();renderLB();
+}
+
+function getActiveDayIdx(){
+  // Returns the day index to use for Daily period calculations
+  if(cp!=='daily') return getDayIdxForSelectedWW(selectedWW);
+  if(selectedDayIdx!==-1) return selectedDayIdx;
+  return getDayIdxForSelectedWW(selectedWW); // default to today
+}
+
+function togglePrior(code){
+  const arrow=document.getElementById(`pa-${code}`),sec=document.getElementById(`ps-${code}`);
+  if(!arrow||!sec)return;
+  const open=sec.classList.toggle('open');
+  arrow.style.transform=open?'rotate(90deg)':'rotate(0deg)';
+}
+
+// ── ENTRY FORM ────────────────────────────────────────────────────────
+function buildForm(){
+  const fn=cft,ft=activeFnt()[fn];
+  const coords=getAllCoords().filter(c=>getCoordFn(c.code)===fn);
+  const todayIdx=getDayIdxForSelectedWW(selectedWW);
+  const elapsed=Math.max(0,todayIdx)+1;
+  const readonly=isReadonlyWW(selectedWW);
+  const future=isFutureWW(selectedWW);
+  const active=coords.filter(c=>!c.isTrainee&&coordActive[c.code]!==false);
+  const trainees=coords.filter(c=>c.isTrainee&&coordActive[c.code]!==false
+    &&isTraineeVisibleForPeriod(c.code,cp,selectedWW));
+  const inactive=coords.filter(c=>coordActive[c.code]===false);
+
+  const mkCard=c=>{
+    const d=activeData()[c.code];
+    if(!d) return ''; // safety guard — coord missing from week data
+    const noOut=!c.dailyTarget&&!d.targets.some(t=>parseFloat(t)>0);
+    const oS=noOut?null:getOS(c.code,cp);
+    const fS=getFPY(c.code,cp),aS=getAtt(c.code,cp),cS=getCall(c.code,cp),sS=getSupervisor(c.code,cp);
+    const isOver=false,ov=getOv(c.code,cp),col=sc(ov);
+    let wT=0,wA=0;for(let i=0;i<elapsed;i++){wT+=parseFloat(d.targets[i])||0;wA+=parseFloat(d.actuals[i])||0;}
+    const badges=[];
+    if(c.isSup)badges.push('<span class="badge badge-sup">SUP</span>');
+    if(c.ncg)badges.push('<span class="badge badge-ncg">NCG</span>');
+    if(c.isTrainee)badges.push('<span class="badge badge-trainee">Trainee</span>');
+    const ws=getW(c.fn,c.isTrainee,c.code);
+    const wsStr=METRICS.filter(m=>ws[m]!==null).map(m=>`${m.slice(0,3).toUpperCase()} ${ws[m].toFixed(0)}%`).join(' · ');
+    const allowedMetrics=METRICS.filter(m=>ft[m]);
+    // Compute per-coordinator weights for pill display
+    const coordW=getW(getCoordFn(c.code),c.isTrainee,c.code);
+    const pills=allowedMetrics.map(m=>{
+      const on=d.on[m];
+      const disabled=readonly||future;
+      const pillOnclick=disabled?'':('toggleCoordMetric(\''+c.code+'\',\''+m+'\')');
+      const pillStyle=disabled?'cursor:not-allowed;opacity:.6;':'';
+      const pillTitle=on?'Click to exclude from score':'Click to include in score';
+      const wt=on&&coordW[m]!==null?` <span style="font-size:9px;opacity:.75;">${coordW[m].toFixed(0)}%</span>`:'';
+      return`<span id="pill-${c.code}-${m}" class="metric-pill ${on?'pill-on':'pill-off'}"
+        onclick="${pillOnclick}"
+        style="${pillStyle}"
+        title="${pillTitle}">
+        ${on?'✓':'✗'} ${ML[m]}${wt}
+      </span>`;
+    }).join('');
+
+    let h=`<div class="coord-card">
+      <div class="coord-card-hdr">
+        <span style="font-weight:600;font-size:13px;">${c.code}</span>${badges.join('')}
+        <span style="font-size:12px;color:#555;">${c.name}</span>
+        <span style="font-size:10px;color:#aaa;">Daily target: ${getDailyTarget(c.code,selectedWW)||'—'}</span>
+
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+          <span style="font-size:9px;color:#aaa;" title="Manage in Roster tab">⚙ <a onclick="switchTab('roster',document.getElementById('tab-roster-btn'))" style="color:#1a56a0;cursor:pointer;text-decoration:underline;">Roster</a></span>
+        </div>
+      </div>
+      <div class="coord-card-body">`;
+
+    // OUTPUT
+    if(!noOut&&ft.output){
+      h+=`<div><div class="mlabel" style="margin-bottom:6px;">📦 Output
+        ${oS!==null?`<span class="score-badge ${sb(oS)}">${oS.toFixed(1)}%</span>`:''}
+        <span style="font-size:10px;color:#aaa;margin-left:6px;">WTD: ${wA.toFixed(1)} / ${wT.toFixed(1)}</span>
+      </div><div class="output-grid">`;
+      DAYS.forEach((day,i)=>{
+        const lk=isLockedForWW(i,selectedWW)||future;
+        const isTd=i===todayIdx&&selectedWW===CURRENT_WW&&!future;
+        const isPast=i<todayIdx||(readonly&&!future);
+        let lblClass=lk?'locked':(isTd?'today':'past');
+        let lblSuffix=lk?' 🔒':(isTd?' ●':' ✓');
+        if(future){lblClass='future-ww';lblSuffix='';}
+        h+=`<div class="day-cell">
+          <div class="day-lbl ${lblClass}">${day}${lblSuffix}</div>
+          <input class="metric-input tfield${lk?' locked':''}" type="number" min="0" step="0.1" id="tgt-${c.code}-${i}" value="${d.targets[i]}" style="width:52px;" ${lk?'disabled':''} placeholder="Tgt" oninput="activeData()['${c.code}'].targets[${i}]=parseFloat(this.value)||0;rxOv('${c.code}');">
+          <input class="metric-input${lk?' locked':''}" type="number" min="0" step="0.1" id="act-${c.code}-${i}" value="${d.actuals[i]}" style="width:52px;" ${lk?'disabled':''} placeholder="Act" oninput="activeData()['${c.code}'].actuals[${i}]=parseFloat(this.value)||0;rxOv('${c.code}');">
+        </div>`;
+      });
+      h+=`</div></div>`;
+    } else if(!ft.output){
+      h+=`<div><div class="mlabel off">📦 Output <span class="chip-off">off</span></div></div>`;
+    }
+
+    // ATTENDANCE
+    h+=`<div><div class="mlabel${!ft.attendance?' off':''}" style="margin-bottom:6px;">📅 Attendance
+      ${ft.attendance?`<span class="score-badge ${sb(aS)}" id="as-${c.code}">${aS.toFixed(0)}%</span>`:'<span class="chip-off">off</span>'}
+    </div><div class="attend-grid">`;
+    DAYS.forEach((day,i)=>{
+      const lk=isLockedForWW(i,selectedWW)||future;
+      const isTd=i===todayIdx&&selectedWW===CURRENT_WW&&!future;
+      const isHoliday=d.holiday&&d.holiday[i];
+      const inactive=!isDayActive(c.code,selectedWW,i);
+      h+=`<div class="attend-day${lk||inactive?' lkd':''}">
+        <span style="${isHoliday?'color:#f97316;':''}${inactive?'color:#ddd;':''}">${day}${lk&&!future?' 🔒':isTd?' ●':lk?'':' ✓'}</span>
+        <input type="checkbox" id="att-${c.code}-${i}" ${d.attendance[i]&&!inactive&&!lk?'checked':''} ${lk||inactive?'disabled':''} onchange="activeData()['${c.code}'].attendance[${i}]=this.checked;rxAtt('${c.code}');" title="Present">
+        <input type="checkbox" id="hol-${c.code}-${i}" ${isHoliday&&!lk?'checked':''} ${lk||inactive?'disabled':''} onchange="activeData()['${c.code}'].holiday[${i}]=this.checked;rxAtt('${c.code}');" title="Holiday" style="accent-color:#f97316;">
+        <span style="font-size:8px;color:${isHoliday?'#f97316':'#ccc'};">H</span>
+      </div>`;
+    });
+    h+=`</div></div>`;
+
+    // OTHER METRICS
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">`;
+    const rdis=future; // Only future weeks are non-editable
+
+    // FPY — per-day Submissions / Rejections
+    {
+      let fg='';
+      DAYS.forEach((day,i)=>{
+        const lk=isLockedForWW(i,selectedWW)||future;
+        const isTd=i===todayIdx&&selectedWW===CURRENT_WW&&!future;
+        const inactive=!isDayActive(c.code,selectedWW,i);
+        const sub=d.fpy_sub?d.fpy_sub[i]:0;
+        const rej=d.fpy_rej?d.fpy_rej[i]:0;
+        const dis=lk||inactive?'disabled':'';
+        const moff=!ft.fpy||!d.on.fpy?' moff':'';
+        fg+=`<div class="day-col${lk||inactive?' lkd':''}">
+          <div class="day-lbl${isTd?' today-lbl':''}">${day}${lk&&!future?' 🔒':isTd?' ●':' ✓'}</div>
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${sub}" placeholder="Sub" style="width:100%;" ${dis} oninput="if(!activeData()['${c.code}'].fpy_sub)activeData()['${c.code}'].fpy_sub=[0,0,0,0,0];activeData()['${c.code}'].fpy_sub[${i}]=parseFloat(this.value)||0;rxFPY('${c.code}');">
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${rej}" placeholder="Rej" style="width:100%;border-top:none;" ${dis} oninput="if(!activeData()['${c.code}'].fpy_rej)activeData()['${c.code}'].fpy_rej=[0,0,0,0,0];activeData()['${c.code}'].fpy_rej[${i}]=parseFloat(this.value)||0;rxFPY('${c.code}');">
+        </div>`;
+      });
+      h+=`<div><div class="mlabel${!ft.fpy?' off':''}">🎯 FPY
+        ${ft.fpy&&fS!==null?`<span class="score-badge ${sb(fS)}" id="fs-${c.code}">${fS.toFixed(1)}%</span>`:''}
+        ${!ft.fpy?'<span class="chip-off">off</span>':''}
+      </div>
+      <div class="output-grid" style="margin-top:5px;">${fg}</div>
+      <div style="margin-top:3px;"><span style="font-size:9px;color:#aaa;">Top: Submissions · Bottom: Rejections</span></div>
+      </div>`;
+    }
+
+    // Call Answer Rate — per-day Received / Answered
+    {
+      let cg='';
+      DAYS.forEach((day,i)=>{
+        const lk=isLockedForWW(i,selectedWW)||future;
+        const isTd=i===todayIdx&&selectedWW===CURRENT_WW&&!future;
+        const inactive=!isDayActive(c.code,selectedWW,i);
+        const rec=d.call_received?d.call_received[i]:0;
+        const ans=d.call_answered?d.call_answered[i]:0;
+        const dis=lk||inactive?'disabled':'';
+        const moff=!ft.call||!d.on.call?' moff':'';
+        const ansGtRec=ans>rec&&rec>0;
+        cg+=`<div class="day-col${lk||inactive?' lkd':''}">
+          <div class="day-lbl${isTd?' today-lbl':''}">${day}${lk&&!future?' 🔒':isTd?' ●':' ✓'}</div>
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${ans}" placeholder="Ans" style="width:100%;${ansGtRec?'border:1px solid #dc2626;':''}" ${dis} oninput="if(!activeData()['${c.code}'].call_answered)activeData()['${c.code}'].call_answered=[0,0,0,0,0];activeData()['${c.code}'].call_answered[${i}]=parseFloat(this.value)||0;validateCall('${c.code}',${i});rxCall('${c.code}');">
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${rec}" placeholder="Rcv" style="width:100%;border-top:none;${ansGtRec?'border:1px solid #dc2626;border-top:none;':''}" ${dis} oninput="if(!activeData()['${c.code}'].call_received)activeData()['${c.code}'].call_received=[0,0,0,0,0];activeData()['${c.code}'].call_received[${i}]=parseFloat(this.value)||0;validateCall('${c.code}',${i});rxCall('${c.code}');">
+          ${ansGtRec?`<div style="font-size:8px;color:#dc2626;text-align:center;">Ans>Rcv!</div>`:''}
+        </div>`;
+      });
+      h+=`<div><div class="mlabel${!ft.call?' off':''}">📞 Call Answer Rate
+        ${ft.call?`<span class="score-badge ${sb(cS)}" id="cs-${c.code}">${cS.toFixed(1)}%</span>`:'<span class="chip-off">off</span>'}
+        <span style="font-size:9px;color:#aaa;">(min 95%)</span>
+      </div>
+      <div class="output-grid" style="margin-top:5px;">${cg}</div>
+      <div style="margin-top:3px;"><span style="font-size:9px;color:#aaa;">Top: Answered · Bottom: Received</span></div>
+      </div>`;
+    }
+
+    // Supervisor Tasks — per-day Assigned / Completed
+    {
+      let sg='';
+      DAYS.forEach((day,i)=>{
+        const lk=isLockedForWW(i,selectedWW)||future;
+        const isTd=i===todayIdx&&selectedWW===CURRENT_WW&&!future;
+        const inactive=!isDayActive(c.code,selectedWW,i);
+        const asgn=d.sup_assigned?d.sup_assigned[i]:0;
+        const comp=d.sup_completed?d.sup_completed[i]:0;
+        const dis=lk||inactive?'disabled':'';
+        const moff=!ft.supervisor||!d.on.supervisor?' moff':'';
+        sg+=`<div class="day-col${lk||inactive?' lkd':''}">
+          <div class="day-lbl${isTd?' today-lbl':''}">${day}${lk&&!future?' 🔒':isTd?' ●':' ✓'}</div>
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${asgn}" placeholder="Asgn" style="width:100%;" ${dis} oninput="if(!activeData()['${c.code}'].sup_assigned)activeData()['${c.code}'].sup_assigned=[0,0,0,0,0];activeData()['${c.code}'].sup_assigned[${i}]=parseFloat(this.value)||0;rxSup('${c.code}');">
+          <input class="day-inp${moff}" type="number" min="0" step="1" value="${comp}" placeholder="Comp" style="width:100%;border-top:none;" ${dis} oninput="if(!activeData()['${c.code}'].sup_completed)activeData()['${c.code}'].sup_completed=[0,0,0,0,0];activeData()['${c.code}'].sup_completed[${i}]=parseFloat(this.value)||0;rxSup('${c.code}');">
+        </div>`;
+      });
+      h+=`<div><div class="mlabel${!ft.supervisor?' off':''}">✅ Supervisor Tasks
+        ${ft.supervisor?`<span class="score-badge ${sb(sS)}" id="ss-${c.code}">${sS.toFixed(1)}%</span>`:'<span class="chip-off">off</span>'}
+      </div>
+      <div class="output-grid" style="margin-top:5px;">${sg}</div>
+      <div style="margin-top:3px;"><span style="font-size:9px;color:#aaa;">Top: Assigned · Bottom: Completed</span></div>
+      </div>`;
+    }
+
+    h+=`</div>`;
+
+    // METRIC PILLS
+    
+h+=`<div class="coord-metric-toggles">
+      <span class="coord-metric-toggles-label">Individual metric inclusion:</span>
+      ${pills}
+    </div>`;
+
+    // PRIOR WEEKS
+    if(!noOut){
+      h+=`<div style="border-top:1px solid #f0f0f0;padding-top:4px;">
+        <button class="prior-btn" onclick="togglePrior('${c.code}')">
+          <span id="pa-${c.code}" class="prior-arrow">▶</span>
+          &nbsp;Prior weeks data (MTD / QTD override)
+          <span style="font-size:9px;color:#bbb;margin-left:6px;">— MTD/QTD output now auto-calculates from weekly data. Use overrides only for data entered outside this dashboard.</span>
+        </button>
+        <div class="prior-section" id="ps-${c.code}">
+          <div class="prior-grid">
+            <div class="prior-field"><label>MTD Target</label>
+              <input class="metric-input tfield${rdis?' locked':''}" type="number" min="0" step="0.1" id="mt-${c.code}" value="${d.mtd_target_override!==null?d.mtd_target_override:''}" placeholder="${wT.toFixed(0)}" ${rdis?'disabled':''} oninput="activeData()['${c.code}'].mtd_target_override=this.value!==''?parseFloat(this.value):null;rxOv('${c.code}');">
+            </div>
+            <div class="prior-field"><label>MTD Actual</label>
+              <input class="metric-input${rdis?' locked':''}" type="number" min="0" step="0.1" id="ma-${c.code}" value="${d.mtd_actual_override!==null?d.mtd_actual_override:''}" placeholder="${wA.toFixed(0)}" ${rdis?'disabled':''} oninput="activeData()['${c.code}'].mtd_actual_override=this.value!==''?parseFloat(this.value):null;rxOv('${c.code}');">
+            </div>
+            <div class="prior-field"><label>QTD Target</label>
+              <input class="metric-input tfield${rdis?' locked':''}" type="number" min="0" step="0.1" id="qt-${c.code}" value="${d.qtd_target_override!==null?d.qtd_target_override:''}" placeholder="${wT.toFixed(0)}" ${rdis?'disabled':''} oninput="activeData()['${c.code}'].qtd_target_override=this.value!==''?parseFloat(this.value):null;rxOv('${c.code}');">
+            </div>
+            <div class="prior-field"><label>QTD Actual</label>
+              <input class="metric-input${rdis?' locked':''}" type="number" min="0" step="0.1" id="qa-${c.code}" value="${d.qtd_actual_override!==null?d.qtd_actual_override:''}" placeholder="${wA.toFixed(0)}" ${rdis?'disabled':''} oninput="activeData()['${c.code}'].qtd_actual_override=this.value!==''?parseFloat(this.value):null;rxOv('${c.code}');">
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // OVERALL
+    h+=`<div class="overall-row">
+      <span style="font-size:11px;color:#666;">Overall (${cp.toUpperCase()}):</span>
+      <span id="ov-${c.code}" style="font-size:16px;font-weight:700;color:${col};">${ov.toFixed(1)}%</span>
+      <div class="score-bar-wrap" style="width:90px;"><div class="score-bar" style="width:${Math.min(ov,100)}%;background:${col};"></div></div>
+      <span style="font-size:10px;color:#aaa;margin-left:auto;">${wsStr}</span>
+    </div>`;
+    h+=`</div></div>`;return h;
+  };
+
+  let html='';
+  if(active.length)html+=active.map(mkCard).join('');
+  if(trainees.length){html+=`<div class="sec-div">Trainees</div>`;html+=trainees.map(mkCard).join('');}
+    document.getElementById('entry-form').innerHTML=html;
+  buildHiddenPanel();
+}
+
+// ── REFRESH HELPERS ───────────────────────────────────────────────────
+function rxOv(code){
+  const c=getAllCoords().find(x=>x.code===code),ov=getOv(code,cp),el=document.getElementById(`ov-${code}`);
+  if(el){el.style.color=c.isTrainee?'#9ca3af':sc(ov);el.textContent=ov.toFixed(1)+'%';}
+}
+function rxAtt(code){
+  const s=getAtt(code,cp);
+  const el=document.getElementById(`as-${code}`);
+  if(el){
+    el.textContent=s.toFixed(0)+'%';
+    // Update badge color
+    el.className='score-badge '+sb(s);
+  }
+  rxOv(code);
+}
+function rxFPY(code){
+  const s=getFPY(code,cp);
+  const el=document.getElementById(`fs-${code}`);
+  if(el&&s!==null){el.textContent=s.toFixed(1)+'%';el.className='score-badge '+sb(s);}
+  rxOv(code);
+}
+function validateCall(code,dayIdx){
+  // Warn if answered > received for a specific day
+  const d=activeData()[code];
+  if(!d) return;
+  const ans=parseFloat(d.call_answered&&d.call_answered[dayIdx])||0;
+  const rec=parseFloat(d.call_received&&d.call_received[dayIdx])||0;
+  // Rebuild just the call grid to refresh warning state
+  if(ans>rec&&rec>0){
+    console.warn(`Call data warning: ${code} day ${dayIdx} — Answered(${ans}) > Received(${rec})`);
+  }
+}
+function rxCall(code){
+  const s=getCall(code,cp);
+  const el=document.getElementById(`cs-${code}`);
+  if(el){el.textContent=s.toFixed(1)+'%';el.className='score-badge '+sb(s);}
+  rxOv(code);
+}
+function rxSup(code){
+  const s=getSupervisor(code,cp);
+  const el=document.getElementById(`ss-${code}`);
+  if(el){el.textContent=s.toFixed(1)+'%';el.className='score-badge '+sb(s);}
+  rxOv(code);
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────
+function cdis(code,metric){
+  const c=getAllCoords().find(x=>x.code===code),w=getW(getCoordFn(code),c.isTrainee,code);
+  if(w[metric]===null)return'<span class="chip-off">off</span>';
+  if(metric==='output'){const s=getOS(code,cp);if(s===null)return'—';return s.toFixed(1)+'%';}
+  if(metric==='fpy'){const s=getFPY(code,cp);return s!==null&&s>0?s.toFixed(1)+'%':'—';}
+  if(metric==='attendance')return getAtt(code,cp).toFixed(0)+'%';
+  if(metric==='call'){const s=getCall(code,cp);return s>0?s.toFixed(1)+'%':'—';}
+  if(metric==='supervisor'){const s=getSupervisor(code,cp);return s>0?s.toFixed(1)+'%':'—';}
+  return'—';
+}
+function updateLeaderboard(){collectDOM();renderLB();switchTab('leaderboard',document.querySelectorAll('.tab')[1]);}
+function renderLB(){
+  let rd=getAllCoords().filter(c=>coordActive[c.code]!==false).map(c=>({...c,fn:getCoordFn(c.code),overall:getOv(c.code,cp)}));
+  if(cf!=='ALL')rd=rd.filter(d=>d.fn===cf);
+  const ranked=rd.filter(d=>!d.isTrainee);
+  const unranked=rd.filter(d=>d.isTrainee&&isTraineeVisibleForPeriod(d.code,cp,selectedWW));
+  ranked.sort((a,b)=>{
+    if(cs==='name') return csd*(a.name.localeCompare(b.name));
+    if(cs==='fn')   return csd*(a.fn.localeCompare(b.fn));
+    // Default: 1) score desc, 2) team name asc, 3) first name asc
+    const scoreDiff=b.overall-a.overall;
+    if(scoreDiff!==0) return csd*scoreDiff;
+    const fnDiff=a.fn.localeCompare(b.fn);
+    if(fnDiff!==0) return fnDiff;
+    const aFirst=a.name.split(' ')[0], bFirst=b.name.split(' ')[0];
+    return aFirst.localeCompare(bFirst);
+  });
+  const mkR=(d,rank,isTraineeRank=false)=>{
+    const iR=rank!==null,ov=d.overall,col=isTraineeRank?sc(ov):(!iR?'#9ca3af':sc(ov)),bw=Math.min(ov,100);
+    const rCls=isTraineeRank?(rank===1?'r1':rank===2?'r2':rank===3?'r3':'rn'):(rank===1?'r1':rank===2?'r2':rank===3?'r3':'rn');
+    const badges=[];
+    if(d.isSup)badges.push('<span class="badge badge-sup">SUP</span>');
+    if(d.ncg)badges.push('<span class="badge badge-ncg">NCG</span>');
+    if(d.isTrainee)badges.push('<span class="badge badge-trainee">Trainee</span>');
+    return`<tr class="${ov>=90?'top3':''}">
+      <td><div class="rank-badge ${iR?rCls:'rn'}">${rank||'—'}</div></td>
+      <td><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><span style="font-weight:600;">${d.code}</span>${badges.join('')}</div><div style="font-size:11px;color:#666;">${d.name}</div></td>
+      <td><span class="fn-label fn-${d.fn}">${d.fn}</span></td>
+      <td style="text-align:center;">${cdis(d.code,'output')}</td>
+      <td style="text-align:center;">${cdis(d.code,'fpy')}</td>
+      <td style="text-align:center;">${cdis(d.code,'call')}</td>
+      <td style="text-align:center;">${cdis(d.code,'attendance')}</td>
+      <td style="text-align:center;">${cdis(d.code,'supervisor')}</td>
+      <td><span style="font-weight:600;font-size:13px;color:${col};">${ov.toFixed(1)}%</span></td>
+      <td><div class="score-bar-wrap" style="width:64px;"><div class="score-bar" style="width:${iR?bw:0}%;background:${col};"></div></div></td>
+    </tr>`;
+  };
+  let rows=ranked.map((d,i)=>mkR(d,i+1));
+  if(unranked.length){
+    // Sort trainees by overall score descending
+    unranked.sort((a,b)=>{
+      const scoreDiff=b.overall-a.overall;
+      if(scoreDiff!==0) return scoreDiff;
+      const fnDiff=a.fn.localeCompare(b.fn);
+      if(fnDiff!==0) return fnDiff;
+      const aFirst=a.name.split(' ')[0], bFirst=b.name.split(' ')[0];
+      return aFirst.localeCompare(bFirst);
+    });
+    rows.push(`<tr><td colspan="10" style="font-size:10px;font-weight:600;color:#5b21b6;padding:6px 9px;background:#f5f3ff;border-top:2px solid #e0e0e0;letter-spacing:.3px;">TRAINEES</td></tr>`);
+    rows=rows.concat(unranked.map((d,i)=>mkR(d,i+1,true)));
+  }
+  document.getElementById('lb-body').innerHTML=rows.join('');
+}
+function filterFn(fn,btn){cf=fn;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLB();}
+function sortBy(col){if(cs===col)csd*=-1;else{cs=col;csd=1;}renderLB();}
+
+// ── WEIGHT CONFIG ─────────────────────────────────────────────────────
+function renderWT(){
+  const rows=FNS.map(fn=>{
+    const w=getW(fn,false,null),fmt=v=>v===null?'<span class="chip-off">off</span>':`<strong>${v.toFixed(1)}%</strong>`;
+    const tot=Object.values(w).filter(v=>v!==null).reduce((s,v)=>s+v,0);
+    return`<tr><td><span class="fn-label fn-${fn}">${fn}</span></td><td>${fmt(w.output)}</td><td>${fmt(w.fpy)}</td><td>${fmt(w.call)}</td><td>${fmt(w.attendance)}</td><td>${fmt(w.supervisor)}</td><td><strong style="color:#059669;">${tot.toFixed(1)}%</strong></td></tr>`;
+  });
+  rows.push(`<tr style="background:#fafafa;"><td><span class="badge badge-trainee">Trainee</span> <span style="font-size:9px;color:#aaa;">(default)</span></td><td><span class="chip-off">off</span></td><td><span class="chip-off">off</span></td><td><span class="chip-off">off</span></td><td><strong>50.0%</strong></td><td><strong>50.0%</strong></td><td><strong style="color:#059669;">100.0%</strong> <span style="font-size:9px;color:#aaa;">until metrics enabled</span></td></tr>`);
+  document.getElementById('wt-body').innerHTML=rows.join('');
+}
+
+// ── TAB SWITCHER ──────────────────────────────────────────────────────
+function switchTab(tab,btn){
+  ['entry','leaderboard','weights','roster'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(tab==='leaderboard')renderLB();
+  if(tab==='weights')renderWT();
+  if(tab==='roster')renderRoster();
+}
+
+// ── HIDDEN PANEL ─────────────────────────────────────────────────────
+function buildHiddenPanel(){
+  const hiddenAll=getAllCoords().filter(c=>coordActive[c.code]===false);
+  const panel=document.getElementById('hidden-panel');
+  if(!panel) return;
+  if(!hiddenAll.length){panel.innerHTML='';return;}
+  panel.innerHTML=`<div style="margin-top:1rem;border:1px dashed #e0e0e0;border-radius:8px;overflow:hidden;">
+    <div style="padding:8px 14px;background:#fafafa;display:flex;align-items:center;gap:8px;cursor:pointer;"
+      onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.ia-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':'rotate(0deg)'">
+      <span class="ia-arrow" style="font-size:9px;transition:transform .2s;display:inline-block;">▶</span>
+      <span style="font-size:11px;color:#aaa;font-weight:500;">Hidden coordinators (${hiddenAll.length}) — data preserved, excluded from leaderboard</span>
+    </div>
+    <div style="display:none;padding:10px 14px;">
+      ${hiddenAll.map(c=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap;">
+          <span style="font-weight:600;font-size:12px;color:#aaa;">${c.code}</span>
+          <span style="font-size:11px;color:#aaa;">${c.name}</span>
+          <span class="fn-label fn-${getCoordFn(c.code)}" style="opacity:.5;">${getCoordFn(c.code)}</span>
+          ${c.isTrainee?'<span class="badge badge-trainee">Trainee</span>':''}
+          <button onclick="toggleCoordActive('${c.code}')"
+            style="margin-left:auto;font-size:11px;padding:4px 12px;border:1px solid #c7d7f0;border-radius:5px;background:#f0f6ff;color:#1a56a0;cursor:pointer;font-weight:500;">
+            ↩ Restore
+          </button>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── AUTO-SAVE / AUTO-RESTORE (localStorage) ──────────────────────────
+const LS_KEY='SPWR_LB_AUTOSAVE_v26';
+// Auto-fetch: JSON file in same directory as index.html
+// Update DATA_FILE to match your exported JSON filename
+const DATA_FILE='./SPWR-Leaderboard-Data.json';
+const FETCH_INTERVAL_MS=24*60*60*1000; // 24 hours
+
+async function fetchAndLoadData(){
+  try{
+    // Add cache-busting timestamp so browser always gets latest
+    const url=DATA_FILE+'?t='+Date.now();
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const p=await res.json();
+    if(!p.weeks&&!p.data) throw new Error('Invalid data format');
+
+    // Load the fetched data
+    if(p.weeks){
+      Object.keys(p.weeks).forEach(ww=>{
+        const wwNum=parseInt(ww);
+        const ws=p.weeks[ww];
+        const sanitized={};
+        if(ws.coordData){
+          Object.keys(ws.coordData).forEach(code=>{
+            sanitized[code]=sanitizeCoordData(ws.coordData[code]);
+          });
+        }
+        // Backfill missing coords
+        getAllCoords().forEach(c=>{
+          if(!sanitized[c.code]){
+            const dt=getDailyTarget(c.code,wwNum)||0;
+            const defaultOn=c.isTrainee
+              ?{output:false,fpy:false,call:false,attendance:true,supervisor:true}
+              :{output:true,fpy:true,call:true,attendance:true,supervisor:true};
+            sanitized[c.code]={
+              targets:[dt,dt,dt,dt,dt],actuals:[0,0,0,0,0],
+              attendance:[false,false,false,false,false],
+              holiday:[false,false,false,false,false],
+              fpy_submitted:0,fpy_rejected:0,call:0,supervisor:0,
+              mtd_target_override:null,mtd_actual_override:null,
+              qtd_target_override:null,qtd_actual_override:null,
+              on:{...defaultOn},
+            };
+          }
+        });
+        weekStore[wwNum]={coordData:sanitized,fnToggles:ws.fnToggles||emptyFnToggles()};
+      });
+    } else if(p.data){
+      // Old single-week format
+      const store=getWeekStore(CURRENT_WW);
+      COORDS.forEach(c=>{
+        const s=p.data[c.code];if(!s)return;
+        const dt=getDailyTarget(c.code,CURRENT_WW);
+        store.coordData[c.code].targets=[dt,dt,dt,dt,dt];
+        store.coordData[c.code].actuals=[0,0,0,0,0];
+        store.coordData[c.code].attendance=[false,false,false,false,false];
+        store.coordData[c.code].holiday=[false,false,false,false,false];
+        store.coordData[c.code].mtd_target_override=s.carry_mtd_target??null;
+        store.coordData[c.code].mtd_actual_override=s.carry_mtd_actual??null;
+        store.coordData[c.code].qtd_target_override=s.carry_qtd_target??null;
+        store.coordData[c.code].qtd_actual_override=s.carry_qtd_actual??null;
+        store.coordData[c.code].fpy_submitted=s.fpy_submitted||0;
+        store.coordData[c.code].fpy_rejected=s.fpy_rejected||0;
+        store.coordData[c.code].call=s.call||0;
+        if(s.on)store.coordData[c.code].on={...s.on};
+      });
+    }
+    if(p.coordActive) Object.keys(p.coordActive).forEach(code=>{
+      if(coordActive.hasOwnProperty(code)) coordActive[code]=p.coordActive[code];
+    });
+    if(p.coordFn) Object.keys(p.coordFn).forEach(code=>{coordFn[code]=p.coordFn[code];});
+    if(p.rosterMutations){Object.keys(p.rosterMutations).forEach(code=>{rosterMutations[code]=p.rosterMutations[code];});applyRosterMutations();}
+    if(p.traineeStart) Object.keys(p.traineeStart).forEach(code=>{traineeStart[code]=p.traineeStart[code];});
+    if(p.dynamicCoords&&Array.isArray(p.dynamicCoords)){dynamicCoords.length=0;p.dynamicCoords.forEach(c=>dynamicCoords.push(c));}
+    if(p.currentWW) selectedWW=p.currentWW;
+
+    // Store fetch timestamp
+    fixRSCTargets(); // correct RSC targets to 3.2
+    localStorage.setItem(LS_KEY+'_fetched',Date.now().toString());
+    console.log('Data auto-fetched from',DATA_FILE,'at',new Date().toLocaleTimeString());
+    return true;
+  }catch(e){
+    console.log('Auto-fetch skipped:',e.message);
+    return false;
+  }
+}
+
+function shouldFetch(){
+  // In view mode (URL param): always fetch
+  if(urlViewMode) return true;
+  // In edit mode: only fetch if more than 24h since last fetch
+  const last=parseInt(localStorage.getItem(LS_KEY+'_fetched')||'0');
+  return (Date.now()-last)>FETCH_INTERVAL_MS;
+}
+
+function autoSave(){
+  try{
+    collectDOM();
+    const payload={
+      version:'2.6',
+      savedAt:fmtMT(),
+      currentWW:selectedWW,
+      coordActive:{...coordActive},
+      coordFn:{...coordFn},
+      traineeStart:{...traineeStart},
+      dynamicCoords:[...dynamicCoords],
+      rosterMutations:{...rosterMutations},
+      weeks:{}
+    };
+    Object.keys(weekStore).forEach(ww=>{
+      payload.weeks[ww]={
+        coordData:JSON.parse(JSON.stringify(weekStore[ww].coordData)),
+        fnToggles:JSON.parse(JSON.stringify(weekStore[ww].fnToggles)),
+      };
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  }catch(e){console.warn('Auto-save failed:',e);}
+}
+
+function autoRestore(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const p=JSON.parse(raw);
+    if(!p.weeks) return false;
+    Object.keys(p.weeks).forEach(ww=>{
+      const wwNum=parseInt(ww);
+      const ws=p.weeks[ww];
+      const sanitized={};
+      if(ws.coordData){
+        Object.keys(ws.coordData).forEach(code=>{
+          sanitized[code]=sanitizeCoordData(ws.coordData[code]);
+        });
+      }
+      // Backfill missing coords
+      getAllCoords().forEach(c=>{
+        if(!sanitized[c.code]){
+          const dt=getDailyTarget(c.code,wwNum)||0;
+          const defaultOn=c.isTrainee
+            ?{output:false,fpy:false,call:false,attendance:true,supervisor:true}
+            :{output:true,fpy:true,call:true,attendance:true,supervisor:true};
+          sanitized[c.code]={
+            targets:[dt,dt,dt,dt,dt],actuals:[0,0,0,0,0],
+            attendance:[false,false,false,false,false],
+            holiday:[false,false,false,false,false],
+            fpy_submitted:0,fpy_rejected:0,call:0,supervisor:0,
+            mtd_target_override:null,mtd_actual_override:null,
+            qtd_target_override:null,qtd_actual_override:null,
+            on:{...defaultOn},
+          };
+        }
+      });
+      weekStore[wwNum]={coordData:sanitized,fnToggles:ws.fnToggles||emptyFnToggles()};
+    });
+    if(p.coordActive) Object.keys(p.coordActive).forEach(code=>{
+      if(coordActive.hasOwnProperty(code)) coordActive[code]=p.coordActive[code];
+    });
+    if(p.coordFn) Object.keys(p.coordFn).forEach(code=>{coordFn[code]=p.coordFn[code];});
+    if(p.rosterMutations){Object.keys(p.rosterMutations).forEach(code=>{rosterMutations[code]=p.rosterMutations[code];});applyRosterMutations();}
+    if(p.traineeStart) Object.keys(p.traineeStart).forEach(code=>{traineeStart[code]=p.traineeStart[code];});
+    if(p.dynamicCoords&&Array.isArray(p.dynamicCoords)){dynamicCoords.length=0;p.dynamicCoords.forEach(c=>dynamicCoords.push(c));}
+    if(p.currentWW) selectedWW=p.currentWW;
+    console.log('Auto-restored from',p.savedAt);
+    return true;
+  }catch(e){console.warn('Auto-restore failed:',e);return false;}
+}
+
+function clearAutoSave(){
+  localStorage.removeItem(LS_KEY);
+  showSt('✓ Auto-save cleared',true);
+}
+
+// Auto-save on any input change — debounced 2s
+let autoSaveTimer=null;
+function scheduleAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{autoSave();const el=document.getElementById('autosave-indicator');if(el)el.textContent='💾 Auto-saved '+new Date().toLocaleTimeString('en-US',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});},2000);
+}
+
+// Patch all data-mutating functions to trigger auto-save
+const _origToggleCoordActive=toggleCoordActive;
+window.toggleCoordActive=function(code){_origToggleCoordActive(code);scheduleAutoSave();};
+const _origReassignCoord=reassignCoord;
+window.reassignCoord=function(code,fn){_origReassignCoord(code,fn);scheduleAutoSave();};
+const _origTogFn=togFn;
+window.togFn=function(fn,m,v){_origTogFn(fn,m,v);scheduleAutoSave();};
+const _origToggleCoordMetric=toggleCoordMetric;
+window.toggleCoordMetric=function(code,metric){_origToggleCoordMetric(code,metric);scheduleAutoSave();};
+
+// Patch oninput handlers — intercept via document event delegation
+document.addEventListener('input',()=>scheduleAutoSave());
+document.addEventListener('change',()=>scheduleAutoSave());
+
+// Save before tab/window closes
+window.addEventListener('beforeunload',()=>autoSave());
+
+// ── INIT ──────────────────────────────────────────────────────────────
+buildWWSelector();
+// Try to restore saved data first
+// ── STARTUP SEQUENCE ─────────────────────────────────────────────────
+async function init(){
+  // Step 1: restore from localStorage (editor's saved state)
+  const restored=!urlViewMode&&autoRestore();
+
+  // Step 2: fetch latest JSON from GitHub if needed
+  // In view mode: always fetch fresh data
+  // In edit mode: fetch only if >24h since last fetch
+  let fetched=false;
+  if(shouldFetch()){
+    const fetchIndicator=document.getElementById('autosave-indicator');
+    if(fetchIndicator) fetchIndicator.textContent='⏳ Fetching latest data...';
+    fetched=await fetchAndLoadData();
+    if(fetchIndicator){
+      fetchIndicator.textContent=fetched?'✓ Data up to date':'';
+      if(fetched) setTimeout(()=>{fetchIndicator.textContent='';},3000);
+    }
+  }
+
+  // Step 2b: clear future week data and future days within current week
+  const todayDayIdx=getDayIdxForSelectedWW(CURRENT_WW);
+  for(let ww=CURRENT_WW;ww<=52;ww++){
+    if(weekStore[ww]){
+      Object.keys(weekStore[ww].coordData).forEach(code=>{
+        const d=weekStore[ww].coordData[code];
+        if(ww>CURRENT_WW){
+          // Full reset for future weeks
+          const _dt=getDailyTarget(code,ww)||0;d.targets=[_dt,_dt,_dt,_dt,_dt];
+          d.actuals=[0,0,0,0,0];
+          d.attendance=[false,false,false,false,false];
+          d.holiday=[false,false,false,false,false];
+          d.fpy_submitted=0;d.fpy_rejected=0;d.call=0;d.supervisor=0;
+        } else {
+          // Current week: clear future days only (days after today)
+          for(let i=todayDayIdx+1;i<5;i++){
+            d.actuals[i]=0;
+            d.attendance[i]=false;
+            d.holiday[i]=false; // future days can't be holidays yet
+            if(d.call_received)d.call_received[i]=0;
+            if(d.call_answered)d.call_answered[i]=0;
+            if(d.fpy_sub)d.fpy_sub[i]=0;
+            if(d.fpy_rej)d.fpy_rej[i]=0;
+            if(d.sup_assigned)d.sup_assigned[i]=0;
+            if(d.sup_completed)d.sup_completed[i]=0;
+          }
+        }
+      });
+    }
+  }
+
+  // Step 3: build UI
+  updateWWUI();
+  buildFnTabs();
+  buildToggles();
+  buildForm();
+  buildHiddenPanel();
+  renderLB();
+
+  // Step 4: apply view mode
+  setViewMode(viewMode);
+  if(urlViewMode){
+    const bannerEditBtn=document.getElementById('banner-edit-btn');
+    if(bannerEditBtn) bannerEditBtn.style.display='none';
+  }
+
+  // Step 5: notifications
+  if(restored&&!fetched){
+    setTimeout(()=>showSt('✓ Auto-restored your previous session data',true),500);
+  }
+  if(fetched&&urlViewMode){
+    setTimeout(()=>showSt('✓ Latest data loaded',true),500);
+  }
+  // Set current WW label in future-week banner
+  const cwLabel=document.getElementById('current-ww-label');
+  if(cwLabel) cwLabel.textContent=CURRENT_WW;
+  // Initialize day pills if Daily is default period
+  if(cp==='daily'){
+    const pillsRow=document.getElementById('day-pills');
+    if(pillsRow){ pillsRow.style.display='flex'; updateDayPills(); }
+  }
+
+  // Step 6: schedule next auto-fetch every 24h
+  setInterval(async()=>{
+    if(shouldFetch()){
+      const ok=await fetchAndLoadData();
+      if(ok){
+        // Silently refresh UI with new data
+        updateWWUI();buildToggles();buildForm();buildHiddenPanel();renderLB();
+        showSt('✓ Data refreshed',true);
+      }
+    }
+  }, FETCH_INTERVAL_MS);
+}
+
+init();
+</script>
+</body>
+</html>
